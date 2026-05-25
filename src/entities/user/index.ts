@@ -1,2 +1,2 @@
-export { userKeys, userQueries, UserSchema } from "./api/user-queries";
 export type { User } from "./api/user-queries";
+export { UserSchema, userKeys, userQueries } from "./api/user-queries";

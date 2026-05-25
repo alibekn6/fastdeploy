@@ -10,7 +10,8 @@
       "!**/dist",
       "!**/drizzle",
       "!**/coverage",
-      "!**/playwright-report"
+      "!**/playwright-report",
+      "!**/mockServiceWorker.js"
     ]
   },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },

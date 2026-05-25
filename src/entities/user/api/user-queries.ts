@@ -12,5 +12,8 @@ export const userKeys = {
 
 export const userQueries = {
   detail: (id: string) =>
-    queryOptions({ queryKey: userKeys.detail(id), queryFn: () => getValidated(`users/${id}`, UserSchema) }),
+    queryOptions({
+      queryKey: userKeys.detail(id),
+      queryFn: () => getValidated(`users/${id}`, UserSchema),
+    }),
 };

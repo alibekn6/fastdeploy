@@ -1,4 +1,4 @@
-import { signInSchema, type SignInInput } from "../model/schema";
+import { type SignInInput, signInSchema } from "../model/schema";
 
 export async function signIn(input: SignInInput) {
   const parsed = signInSchema.parse(input);
