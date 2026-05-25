@@ -7,7 +7,7 @@ import { routes } from "@/shared/config/routes";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
-import { signInAction } from "../api/sign-in";
+import { signIn } from "../api/sign-in";
 import { type SignInInput, signInSchema } from "../model/schema";
 
 export function SignInForm() {
@@ -24,7 +24,7 @@ export function SignInForm() {
     <form
       className="flex w-full max-w-sm flex-col gap-4"
       onSubmit={handleSubmit(async (values) => {
-        await signInAction(values);
+        await signIn(values);
         router.push(routes.dashboard);
       })}
     >
