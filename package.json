@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:mock": "NEXT_PUBLIC_API_MOCKING=enabled next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
@@ -73,5 +74,10 @@
     "typescript": "^5",
     "vite-tsconfig-paths": "6.1.1",
     "vitest": "4.1.7"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
