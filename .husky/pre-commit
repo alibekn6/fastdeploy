@@ -1,0 +1,7 @@
+pnpm lint-staged
+pnpm steiger ./src
+if [ "$SKIP_TSC" = "1" ]; then
+  echo "Skipping tsc (SKIP_TSC=1)"
+else
+  pnpm tsc --noEmit
+fi
