@@ -4,7 +4,7 @@
 
 ## What & why
 
-Playwright runs end-to-end tests against the real Next.js application in a Chromium browser. It is the only layer that verifies routing (middleware redirects, cookie-gated pages), the server/client boundary, and full user flows. Both boilerplates share the same spec structure — unauth redirect, login → dashboard → logout, post list — but differ fundamentally in how the server gets its data: A uses a real Postgres database seeded via `global-setup.ts`, B uses MSW to mock every API call at the network boundary.
+Playwright runs end-to-end tests against the real Next.js application in a Chromium browser. It is the only layer that verifies routing (proxy redirects, cookie-gated pages), the server/client boundary, and full user flows. Both boilerplates share the same spec structure — unauth redirect, login → dashboard → logout, post list — but differ fundamentally in how the server gets its data: A uses a real Postgres database seeded via `global-setup.ts`, B uses MSW to mock every API call at the network boundary.
 
 ## Conventions / rules
 

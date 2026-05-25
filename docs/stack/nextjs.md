@@ -2,7 +2,7 @@
 
 ## What & why
 
-Both boilerplates use Next.js 15.5.x (App Router, Turbopack dev). It provides file-based routing, React Server Components, Server Actions, Route Handlers, and `output: "standalone"` for Docker deployment. The challenge in an FSD codebase is that Next.js App Router wants to own routing under `app/`, while FSD defines its own `app` and `pages` layers under `src/`. The two-directory trick below resolves this without hacks.
+Both boilerplates use Next.js 16.x (App Router, Turbopack by default for dev and build). It provides file-based routing, React Server Components, Server Actions, Route Handlers, and `output: "standalone"` for Docker deployment. The challenge in an FSD codebase is that Next.js App Router wants to own routing under `app/`, while FSD defines its own `app` and `pages` layers under `src/`. The two-directory trick below resolves this without hacks.
 
 ## Conventions / rules
 
@@ -67,9 +67,9 @@ export async function getPosts() {
 
 **Frontend repo** uses Route Handlers for auth token proxying (`app/api/auth/login|logout|refresh/route.ts` → `src/app/api-routes/auth.ts`). The handler sets httpOnly cookies so the browser never touches the raw JWT.
 
-### Middleware
+### Proxy
 
-`middleware.ts` (fullstack only) does an optimistic auth-cookie check via `getSessionCookie` from `better-auth/cookies`. It redirects unauthenticated requests to `/login` before the page renders. Matcher: `["/dashboard/:path*"]`.
+Both repos use a root `proxy.ts` (renamed from `middleware.ts` in Next.js 16; the exported function is now `proxy`, and it runs on the Node.js runtime — the Edge runtime is not supported in `proxy`). It does an optimistic auth-cookie check and redirects unauthenticated requests to `/login` before the page renders. Matcher: `["/dashboard/:path*"]`. Fullstack uses `getSessionCookie` from `better-auth/cookies`; frontend checks for the `SESSION_COOKIE` presence directly.
 
 ### Providers in `app/layout.tsx`
 

@@ -1,6 +1,6 @@
 # nextjs-frontend
 
-A production-style **Next.js 15 + Feature-Sliced Design** boilerplate for a frontend that consumes
+A production-style **Next.js 16 + Feature-Sliced Design** boilerplate for a frontend that consumes
 an **external HTTP API** — mocked with **MSW** in dev/test — with a thin httpOnly-cookie BFF for auth.
 
 ## Quickstart
@@ -31,7 +31,7 @@ Better Auth swap).
 
 ## Stack
 
-Next.js 15 (App Router/RSC) · React 19 · TypeScript (strict) · pnpm · **Biome** (lint+format) ·
+Next.js 16 (App Router/RSC) · React 19 · TypeScript (strict) · pnpm · **Biome** (lint+format) ·
 **Tailwind v4** + **shadcn/ui** · **Feature-Sliced Design** enforced by **Steiger** ·
 **TanStack Query** · **React Hook Form** + **Zod** · **ky** (HTTP) + Zod-validated fetcher ·
 **MSW** (mock API) · thin httpOnly-cookie BFF (Better Auth = documented swap-in) ·

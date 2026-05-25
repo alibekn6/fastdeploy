@@ -2,7 +2,7 @@
 
 ## What & why
 
-Both boilerplates run React 19.1 with Next.js App Router. The default rendering mode is **React Server Components (RSC)** — components are server-rendered and stream HTML unless explicitly opted into the client. This means most FSD slices ship zero client-side JavaScript by default. `"use client"` is added only at interactive leaves, keeping the client bundle small and data-fetching close to the source.
+Both boilerplates run React 19.2 with Next.js App Router. The default rendering mode is **React Server Components (RSC)** — components are server-rendered and stream HTML unless explicitly opted into the client. This means most FSD slices ship zero client-side JavaScript by default. `"use client"` is added only at interactive leaves, keeping the client bundle small and data-fetching close to the source.
 
 ## Conventions / rules
 

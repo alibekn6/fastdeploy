@@ -1,6 +1,6 @@
 # nextjs-frontend
 
-Frontend Next.js 15 boilerplate on Feature-Sliced Design: consumes an **external** HTTP API (mocked with MSW in dev/test), with a thin httpOnly-cookie BFF for auth.
+Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external** HTTP API (mocked with MSW in dev/test), with a thin httpOnly-cookie BFF for auth.
 
 ## Build and Test
 
