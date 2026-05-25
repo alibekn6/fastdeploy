@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "ci": "biome ci",
     "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "cz": "cz",

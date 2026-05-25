@@ -4,6 +4,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
+  envPrefix: ["NEXT_PUBLIC_", "NODE_"],
   test: {
     globals: true,
     projects: [

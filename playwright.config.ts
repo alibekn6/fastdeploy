@@ -15,7 +15,9 @@ export default defineConfig({
   use: { baseURL, trace: "on-first-retry" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: isCI ? "pnpm build && pnpm start" : "pnpm dev",
+    command: isCI
+      ? "NEXT_PUBLIC_API_MOCKING=enabled pnpm build && NEXT_PUBLIC_API_MOCKING=enabled pnpm start"
+      : "pnpm dev:mock",
     url: baseURL,
     timeout: 120_000,
     reuseExistingServer: !isCI,
