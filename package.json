@@ -33,6 +33,7 @@
     "@tanstack/react-query": "5.100.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "ky": "2.0.2",
     "lucide-react": "^1.16.0",
     "next": "15.5.18",
     "radix-ui": "^1.4.3",
