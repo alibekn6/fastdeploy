@@ -12,4 +12,5 @@ export const handlers = [
     const body = (await request.json()) as { email: string };
     return HttpResponse.json({ token: "mock-token", user: { id: "u1", name: body.email } });
   }),
+  http.post(api("/auth/logout"), () => HttpResponse.json({ ok: true })),
 ];

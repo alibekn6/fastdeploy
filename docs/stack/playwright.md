@@ -36,14 +36,14 @@ Only `webServer.command` differs between A and B (see below). `reuseExistingServ
 | Local dev command | `pnpm dev` | `pnpm dev:mock` (`NEXT_PUBLIC_API_MOCKING=enabled next dev --turbopack`) |
 | CI command | `pnpm build && pnpm start` | `NEXT_PUBLIC_API_MOCKING=enabled pnpm build && NEXT_PUBLIC_API_MOCKING=enabled pnpm start` |
 | Data source | Real Postgres (must be running) | MSW handlers (`src/shared/api/mocks/handlers.ts`) |
-| `global-setup.ts` | POSTs to `/api/auth/sign-up/email` to seed the test user | No-op (`// MSW-mocked BFF login accepts any credentials`) |
-| `instrumentation.ts` | Not present | Starts MSW node server when `NEXT_PUBLIC_API_MOCKING=enabled` so server-side BFF fetches are mocked |
+| `global-setup.ts` | POSTs to `/api/auth/sign-up/email` to seed the test user | No-op (`// MSW-mocked login accepts any credentials`) |
+| `instrumentation.ts` | Not present | Starts MSW node server when `NEXT_PUBLIC_API_MOCKING=enabled` so server-side fetches are mocked |
 
 **A's `global-setup.ts` — retry loop:**
 `nextjs-fullstack/e2e/global-setup.ts` retries the sign-up POST up to 15 times (2 s delay) because Next.js with Turbopack compiles routes lazily — the auth route may not be ready immediately after the server reports "ready". A `< 500` status (including 4xx for "user already exists") is treated as success.
 
 **B's MSW server runtime:**
-`nextjs-frontend/instrumentation.ts` calls `server.listen({ onUnhandledRequest: "bypass" })` when `NEXT_RUNTIME === "nodejs"` and `NEXT_PUBLIC_API_MOCKING === "enabled"`. This intercepts outgoing `fetch` calls made by server components and BFF route handlers, so E2E tests never need a real API backend.
+`nextjs-frontend/instrumentation.ts` calls `server.listen({ onUnhandledRequest: "bypass" })` when `NEXT_RUNTIME === "nodejs"` and `NEXT_PUBLIC_API_MOCKING === "enabled"`. This intercepts outgoing `fetch` calls made by server components (e.g. the dashboard prefetch), so E2E tests never need a real API backend.
 
 **Spec files — `e2e/` directory (same names in both):**
 

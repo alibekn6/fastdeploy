@@ -55,13 +55,13 @@ export async function register() {
 }
 ```
 
-The `NEXT_RUNTIME === "nodejs"` guard prevents the import from running in the Edge runtime. This is critical for e2e: the BFF route handlers (`app/api/auth/*/route.ts`) call the external API via ky — without this, server-side fetches would escape MSW and hit the real network.
+The `NEXT_RUNTIME === "nodejs"` guard prevents the import from running in the Edge runtime. This is critical for e2e: server components (e.g. the `app/dashboard` prefetch) call the external API via ky — without this, server-side fetches would escape MSW and hit the real network.
 
 > **Gotcha:** the server-side global-`fetch` patch is installed once at startup. Turbopack HMR during `pnpm dev:mock` can drop it, after which server requests escape to the real network (symptom: `getaddrinfo ENOTFOUND`). Restart `dev:mock` to restore. `next build` + `next start` is unaffected.
 
 ### Integration tests
 
-Tests spin up their own `setupServer()` instances (see `src/shared/api/fetcher.integration.test.ts` and `src/app/api-routes/auth.integration.test.ts`). They do not import `node.ts` — they build isolated servers per suite with `beforeAll/afterAll/afterEach` lifecycle.
+Tests spin up their own `setupServer()` instances (see `src/shared/api/fetcher.integration.test.ts`). They do not import `node.ts` — they build isolated servers per suite with `beforeAll/afterAll/afterEach` lifecycle.
 
 ## ✅ Best practices
 

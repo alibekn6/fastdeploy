@@ -4,7 +4,7 @@
 
 ## What & why
 
-ky is a lightweight `fetch` wrapper with retry, timeout, typed JSON helpers, and a hook system. This repo uses it as the sole HTTP client for calls to the external API. A single configured instance (`http`) is created in `src/shared/api/http.ts` and shared by all entity queries and the BFF auth handlers.
+ky is a lightweight `fetch` wrapper with retry, timeout, typed JSON helpers, and a hook system. This repo uses it as the sole HTTP client for calls to the external API. A single configured instance (`http`) is created in `src/shared/api/http.ts` and shared by all entity queries and the auth feature.
 
 ## Conventions / rules
 
@@ -50,15 +50,16 @@ Entity modules wire `getValidated` into TanStack Query `queryOptions`:
 
 This is the standard pattern: schema defined with the entity, query key factory alongside it, `queryOptions` exported for use in components.
 
-### BFF auth usage
+### Auth usage
 
-`src/app/api-routes/auth.ts` also uses `http` to call the external auth endpoint:
+The auth feature uses `http` to call the external auth endpoints directly:
 
 ```ts
-const data = await http.post("auth/login", { json: body }).json<{ token: string }>();
+// src/features/auth/api/sign-in.ts
+const { token } = await http.post("auth/login", { json: parsed }).json<{ token: string }>();
 ```
 
-Note: the sign-in feature (`src/features/auth/api/sign-in.ts`) calls the same-origin BFF route via plain `fetch("/api/auth/login")` — it does NOT use `http` directly. `http` is for external API calls only.
+The external backend sets a Secure `httpOnly` session cookie (`credentials: "include"` on `http` sends it back). In **mock mode only** (`NEXT_PUBLIC_API_MOCKING`), the client sets a readable `session` cookie via `document.cookie` so `proxy.ts` can gate routes — a Service Worker can't set httpOnly cookies.
 
 ### MSW compatibility
 
@@ -83,7 +84,7 @@ This mirrors how ky resolves `baseUrl + path`, so MSW intercepts ky requests cor
 - **Do not** add a leading slash to request paths — `"/users/1"` will resolve incorrectly under `baseUrl` (the base path is dropped).
 - **Do not** write `hooks: { beforeRequest: [(req) => req.headers.set(...)] }` — in ky 2.x `beforeRequest` receives a state object; use `({ request }) => request.headers.set(...)`.
 - **Do not** cast the response directly to a TypeScript type without parsing: `.json<User>()` is a type assertion only; it performs no runtime check. Use the Zod fetcher.
-- **Do not** call the external API `http` from client-side auth code — auth flows must go through the BFF (`/api/auth/*`) to keep tokens server-side.
+- **Do not** write the `session` cookie from client code outside mock mode — production relies on the backend's Secure `httpOnly` cookie; the client write is gated by `NEXT_PUBLIC_API_MOCKING`.
 
 ## References
 

@@ -65,7 +65,7 @@ export async function getPosts() {
 
 **Fullstack repo** uses Server Actions for mutations (`"use server"` in `src/features/create-post/api/create-post.ts`). Mutations go through `auth.api.getSession` before touching the DB.
 
-**Frontend repo** uses Route Handlers for auth token proxying (`app/api/auth/login|logout|refresh/route.ts` → `src/app/api-routes/auth.ts`). The handler sets httpOnly cookies so the browser never touches the raw JWT.
+**Frontend repo** calls the external API directly for auth (`http.post("auth/login")` in `src/features/auth/api/sign-in.ts`); the backend sets the Secure httpOnly session cookie. It has no auth Route Handlers.
 
 ### Proxy
 

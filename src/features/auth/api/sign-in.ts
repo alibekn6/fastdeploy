@@ -1,11 +1,15 @@
+import { http } from "@/shared/api/http";
+import { SESSION_COOKIE } from "@/shared/config/auth";
+import { env } from "@/shared/config/env";
 import { type SignInInput, signInSchema } from "../model/schema";
 
 export async function signIn(input: SignInInput) {
   const parsed = signInSchema.parse(input);
-  const res = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(parsed),
-  });
-  if (!res.ok) throw new Error("Sign in failed");
+  const { token } = await http.post("auth/login", { json: parsed }).json<{ token: string }>();
+  // The real backend sets a Secure, httpOnly `session` cookie via Set-Cookie.
+  // In mock mode there is no backend and a Service Worker cannot set httpOnly
+  // cookies, so set a readable one client-side so `proxy.ts` can gate routes.
+  if (env.NEXT_PUBLIC_API_MOCKING === "enabled") {
+    document.cookie = `${SESSION_COOKIE}=${token}; path=/; SameSite=Lax`;
+  }
 }
