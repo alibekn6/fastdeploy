@@ -1,6 +1,6 @@
 # Vitest
 
-**Pinned:** `vitest` 4.1.7, `@vitest/coverage-v8` 4.1.7, `@vitejs/plugin-react` 6.0.2, `vite-tsconfig-paths` 6.1.1, `jsdom` (bundled with Vitest)
+**Pinned:** `vitest` 4.1.9, `@vitest/coverage-v8` 4.1.9, `@vitejs/plugin-react` 6.0.3, `jsdom` (bundled with Vitest). Tsconfig `@/*` paths resolve via Vite 8's native `resolve.tsconfigPaths` — no `vite-tsconfig-paths` plugin.
 
 ## What & why
 
@@ -54,7 +54,7 @@ The `unit` project's `vitest.setup.ts` starts an MSW node server. The integratio
 `nextjs-fullstack/vitest.setup.integration.ts` contains only a comment documenting the no-MSW decision. It is not listed in `setupFiles` because the integration project uses `setupFiles: []` — it exists as documentation, not as a loaded file.
 
 **`@/*` alias in tests:**
-`vite-tsconfig-paths` picks up `paths` from `tsconfig.json` at config time, so `import { db } from "@/shared/api/db"` works inside test files without any extra alias mapping.
+Vite 8's native `resolve.tsconfigPaths: true` (in `vitest.config.ts`) reads `compilerOptions.paths` from `tsconfig.json`, so `import { db } from "@/shared/api/db"` works inside test files without any extra alias mapping. (Requires vitest ≥ 4.1.9; earlier 4.1.x did not apply it in the test env — vitest #10054.)
 
 **Scripts:**
 

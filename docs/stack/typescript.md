@@ -95,7 +95,7 @@ export { isAuthenticated } from "./model/session";
 pnpm typecheck   # tsc --noEmit
 ```
 
-Runs in CI and in the pre-commit hook (unless `SKIP_TSC=1`). Must pass before merging. Vitest uses `vite-tsconfig-paths` to pick up the same `@/*` alias during tests.
+Runs in CI and in the pre-commit hook (unless `SKIP_TSC=1`). Must pass before merging. Vitest resolves the same `@/*` alias via Vite 8's native `resolve.tsconfigPaths`.
 
 ## ✅ Best practices
 
