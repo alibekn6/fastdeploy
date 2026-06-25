@@ -1,6 +1,8 @@
 # nextjs-frontend
 
-Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external** HTTP API (mocked with MSW in dev/test), with a thin httpOnly-cookie BFF for auth.
+Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external** HTTP API (mocked with MSW in dev/test); auth calls that API directly and the backend sets a Secure httpOnly session cookie.
+
+> **Before changing any tool's setup, use the skills and subagents.** The matching skill in `.claude/skills/` (`fsd-architecture`, `msw-mocking`, `ky-http-client`, `env-validation`, `tanstack-query`, `testing-strategy`) auto-loads that area's rules and links the authoritative `docs/stack/<tool>.md` — read the doc before non-trivial changes. After structural (`src/`) or API/auth changes and before committing, dispatch the matching review subagent: **`fsd-compliance`** (FSD layers/public-API/`@x`) or **`boundary-auditor`** (ky/MSW/cookie-auth seam).
 
 ## Build and Test
 
@@ -23,14 +25,14 @@ Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external
 
 - pnpm 11 blocks dependency build scripts. `sharp` is allowed in `pnpm-workspace.yaml` (`allowBuilds`). **Why:** without it every `pnpm <script>` fails at `ERR_PNPM_IGNORED_BUILDS`; `package.json` `pnpm.onlyBuiltDependencies` is ignored by pnpm 11.
 - ky 2.x: the HTTP client (`src/shared/api/http.ts`) uses **`baseUrl`** (NOT `prefixUrl` — ky 2.x throws on it); request paths are passed **without a leading slash** (`users/${id}`, `posts`). The `beforeRequest` hook receives a state object: `({ request }) => request.headers.set(...)`.
-- MSW runs in **two** places, both gated by `NEXT_PUBLIC_API_MOCKING=enabled`: the browser worker (`MswProvider`, client) and the Next **server** runtime (`instrumentation.ts`). The server one is required so the server-side BFF call is mocked. `public/mockServiceWorker.js` is generated (Biome-ignored).
-- Auth is a thin BFF: `src/features/auth/api/sign-in.ts` calls the **same-origin** `/api/auth/login` with `fetch` — NOT the external ky `http`. The BFF (`src/app/api-routes/auth.ts`) sets an httpOnly `SESSION_COOKIE`. It is the documented **single swap point** to Better Auth.
+- MSW runs in **two** places, both gated by `NEXT_PUBLIC_API_MOCKING=enabled`: the browser worker (`MswProvider`, client) and the Next **server** runtime (`instrumentation.ts`). The server one is required so server-side fetches (e.g. the `app/dashboard` prefetch) are mocked. `public/mockServiceWorker.js` is generated (Biome-ignored).
+- Auth calls the external API directly via the ky `http` client (`http.post("auth/login")`/`auth/logout`); the **backend** sets the Secure httpOnly `SESSION_COOKIE`, which `proxy.ts` presence-checks to gate `/dashboard`. The cookie must land on the app's origin (same-site / shared registrable domain) or the proxy and SSR can't read it. In **mock mode only** (`NEXT_PUBLIC_API_MOCKING`), `sign-in.ts`/`header.tsx` set a readable `session` cookie via `document.cookie` because a Service Worker (MSW in the browser) cannot set httpOnly cookies.
 - `NEXT_PUBLIC_*` vars are inlined at **build** time → the Dockerfile build stage takes a `NEXT_PUBLIC_API_URL` ARG. `app/dashboard/page.tsx` is `force-dynamic` (prefetches the external API per request, avoiding a build-time fetch).
 
 ## Do Not
 
 - Do not `export *` from an `index.ts`. Use named re-exports (Steiger + the public-API rule).
-- Do not call the external ky `http` client for auth — auth goes through the same-origin BFF routes.
+- Do not write the `session` cookie from client code outside mock mode — in production the backend sets it (Secure, httpOnly); the client write is gated by `NEXT_PUBLIC_API_MOCKING`.
 - Do not `git commit --no-verify`. The hook formats staged files; bypassing it makes `pnpm ci` (full-tree Biome) fail in CI.
 - Do not add route files under the root `pages/` — it is an intentional empty placeholder that keeps Next from routing the FSD `src/pages` layer.
 
@@ -38,7 +40,7 @@ Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external
 
 - Pre-commit hook runs `lint-staged` + `steiger ./src` + `tsc`. Commits are Conventional (lowercase subject); use `pnpm cz`.
 - Before reporting done: `pnpm ci && pnpm lint:fsd && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build`.
-- Per-tool rules + best/worst practices live in `docs/stack/` — read the relevant file (esp. `msw.md`, `ky.md`, `bff-auth.md`) before changing that tool's setup.
+- Use the per-feature skills + review subagents before changing a tool's setup (see the note at the top). Authoritative per-tool rules live in `docs/stack/`.
 
 ---
 
