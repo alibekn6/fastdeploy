@@ -7,7 +7,12 @@
     "submit": "Кіру"
   },
   "Dashboard": { "title": "Басқару тақтасы", "posts": "Жазбалар" },
-  "Home": { "title": "Басты бет", "welcome": "Қош келдіңіз" },
+  "Home": {
+    "title": "Басты бет",
+    "welcome": "Қош келдіңіз",
+    "tagline": "FSD + Next.js бастапқы үлгісі.",
+    "getStarted": "Бастау"
+  },
   "Metadata": {
     "homeTitle": "Басты бет",
     "homeDescription": "Next.js 16 FSD фронтенд бастапқы үлгісі.",

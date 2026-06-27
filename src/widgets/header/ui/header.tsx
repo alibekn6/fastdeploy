@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { http } from "@/shared/api/http";
 import { SESSION_COOKIE } from "@/shared/config/auth";
 import { env } from "@/shared/config/env";
@@ -8,9 +9,10 @@ import { Button } from "@/shared/ui/button";
 
 export function Header() {
   const router = useRouter();
+  const t = useTranslations("Common");
   return (
     <header className="flex items-center justify-between border-b p-4">
-      <span className="font-semibold">nextjs-frontend</span>
+      <span className="font-semibold">{t("appName")}</span>
       <Button
         variant="outline"
         onClick={async () => {
@@ -22,7 +24,7 @@ export function Header() {
           router.push(routes.login);
         }}
       >
-        Sign out
+        {t("signOut")}
       </Button>
     </header>
   );

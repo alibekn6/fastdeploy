@@ -1,6 +1,7 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { useForm } from "react-hook-form";
 import { routes } from "@/shared/config/routes";
@@ -11,6 +12,7 @@ import { signIn } from "../api/sign-in";
 import { type SignInInput, signInSchema } from "../model/schema";
 
 export function SignInForm() {
+  const t = useTranslations("Auth");
   const router = useRouter();
   const emailId = useId();
   const passwordId = useId();
@@ -29,17 +31,17 @@ export function SignInForm() {
       })}
     >
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={emailId}>Email</Label>
+        <Label htmlFor={emailId}>{t("email")}</Label>
         <Input id={emailId} type="email" {...register("email")} />
         {errors.email && <p className="text-red-600 text-sm">{errors.email.message}</p>}
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={passwordId}>Password</Label>
+        <Label htmlFor={passwordId}>{t("password")}</Label>
         <Input id={passwordId} type="password" {...register("password")} />
         {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
       </div>
       <Button type="submit" disabled={isSubmitting}>
-        Sign in
+        {t("submit")}
       </Button>
     </form>
   );

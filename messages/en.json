@@ -2,7 +2,12 @@
   "Common": { "appName": "nextjs-frontend", "signOut": "Sign out" },
   "Auth": { "title": "Sign in", "email": "Email", "password": "Password", "submit": "Sign in" },
   "Dashboard": { "title": "Dashboard", "posts": "Posts" },
-  "Home": { "title": "Home", "welcome": "Welcome" },
+  "Home": {
+    "title": "Home",
+    "welcome": "Welcome",
+    "tagline": "FSD + Next.js boilerplate.",
+    "getStarted": "Get started"
+  },
   "Metadata": {
     "homeTitle": "Home",
     "homeDescription": "A Next.js 16 FSD frontend boilerplate.",

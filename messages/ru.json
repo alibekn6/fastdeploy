@@ -7,7 +7,12 @@
     "submit": "Войти"
   },
   "Dashboard": { "title": "Панель управления", "posts": "Публикации" },
-  "Home": { "title": "Главная", "welcome": "Добро пожаловать" },
+  "Home": {
+    "title": "Главная",
+    "welcome": "Добро пожаловать",
+    "tagline": "Шаблон FSD + Next.js.",
+    "getStarted": "Начать"
+  },
   "Metadata": {
     "homeTitle": "Главная",
     "homeDescription": "Шаблон фронтенда на Next.js 16 с архитектурой FSD.",
