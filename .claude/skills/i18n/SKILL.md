@@ -1,0 +1,21 @@
+---
+name: i18n
+description: Use when editing src/shared/i18n/**, messages/**, app/[locale]/**, adding next-intl usage, or touching the locale middleware in proxy.ts. Covers the as-needed locale routing and the static-rendering rules that silently break.
+---
+
+# next-intl (i18n)
+
+**Source of truth:** [`docs/stack/i18n.md`](../../../docs/stack/i18n.md). Locales: `en` (default, unprefixed), `ru`, `kk` — `kk` is Kazakh, **not** `kz`. `localePrefix: "as-needed"`.
+
+## Load-bearing rules
+
+- **`await params`** — in Next 16 `params` is a Promise: `const { locale } = await params;`.
+- **`setRequestLocale(locale)`** in every static layout/page **before** any translation call — omitting it silently forces dynamic rendering.
+- **Static metadata:** pass an explicit `{ locale }` to `getTranslations` in `generateMetadata`.
+- **Typed messages** come from `global.d.ts` (`AppConfig` augmentation from `messages/en.json`) — keep `en/ru/kk` JSON in sync; never hardcode UI strings.
+- **Navigate** with `Link`/`useRouter`/`redirect` from `@/shared/i18n` (locale-aware) — not `next/link`.
+- **`proxy.ts` order:** the cookie auth gate runs **first** (it strips a leading `/ru|/kk`, presence-checks `SESSION_COOKIE` for `/dashboard`), **then** hands off to `createMiddleware(routing)`. The matcher must stay site-wide: `"/((?!api|_next|_vercel|.*\\..*).*)"`.
+
+## Verify
+
+`pnpm typecheck` (catches missing/extra message keys via `global.d.ts`) + `pnpm test`. For metadata/canonical/hreflang correctness, dispatch the **`ui-quality`** subagent.

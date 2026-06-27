@@ -2,7 +2,7 @@
 
 Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external** HTTP API (mocked with MSW in dev/test); auth calls that API directly and the backend sets a Secure httpOnly session cookie.
 
-> **Before changing any tool's setup, use the skills and subagents.** The matching skill in `.claude/skills/` (`fsd-architecture`, `msw-mocking`, `ky-http-client`, `env-validation`, `tanstack-query`, `testing-strategy`) auto-loads that area's rules and links the authoritative `docs/stack/<tool>.md` — read the doc before non-trivial changes. After structural (`src/`) or API/auth changes and before committing, dispatch the matching review subagent: **`fsd-compliance`** (FSD layers/public-API/`@x`) or **`boundary-auditor`** (ky/MSW/cookie-auth seam).
+> **Before changing any tool's setup, use the skills and subagents.** The matching skill in `.claude/skills/` (`fsd-architecture`, `msw-mocking`, `ky-http-client`, `env-validation`, `tanstack-query`, `testing-strategy`, `i18n`, `storybook`, `posthog`, `seo`) auto-loads that area's rules and links the authoritative `docs/stack/<tool>.md` — read the doc before non-trivial changes. After structural (`src/`) or API/auth changes and before committing, dispatch the matching review subagent: **`fsd-compliance`** (FSD layers/public-API/`@x`), **`boundary-auditor`** (ky/MSW/cookie-auth seam), or **`ui-quality`** (Storybook/i18n/SEO-metadata seam).
 
 ## Build and Test
 
@@ -12,7 +12,9 @@ Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external
 - FSD lint: `pnpm lint:fsd` (Steiger over `./src`)
 - Type-check: `pnpm typecheck`
 - Unit tests: `pnpm test` · Integration (MSW at the network boundary, **no Docker**): `pnpm test:integration` · E2E: `pnpm e2e`
+- Storybook: `pnpm storybook` (dev workshop) · `pnpm build-storybook` · `pnpm test-storybook` (stories as Vitest browser tests). These scripts set `NEXT_PUBLIC_API_URL` because the preview imports the MSW handlers.
 - Build without env: `SKIP_ENV_VALIDATION=1 pnpm build`
+- Locales: `en` (default, unprefixed), `ru`, `kk` (Kazakh). The CI/full-tree lint gate is `pnpm lint:ci` (Biome over the whole tree, including `docs/` and JSON).
 
 ## Conventions
 
@@ -28,7 +30,11 @@ Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external
 - ky 2.x: the HTTP client (`src/shared/api/http.ts`) uses **`baseUrl`** (NOT `prefixUrl` — ky 2.x throws on it); request paths are passed **without a leading slash** (`users/${id}`, `posts`). The `beforeRequest` hook receives a state object: `({ request }) => request.headers.set(...)`.
 - MSW runs in **two** places, both gated by `NEXT_PUBLIC_API_MOCKING=enabled`: the browser worker (`MswProvider`, client) and the Next **server** runtime (`instrumentation.ts`). The server one is required so server-side fetches (e.g. the `app/dashboard` prefetch) are mocked. `public/mockServiceWorker.js` is generated (Biome-ignored).
 - Auth calls the external API directly via the ky `http` client (`http.post("auth/login")`/`auth/logout`); the **backend** sets the Secure httpOnly `SESSION_COOKIE`, which `proxy.ts` presence-checks to gate `/dashboard`. The cookie must land on the app's origin (same-site / shared registrable domain) or the proxy and SSR can't read it. In **mock mode only** (`NEXT_PUBLIC_API_MOCKING`), `sign-in.ts`/`header.tsx` set a readable `session` cookie via `document.cookie` because a Service Worker (MSW in the browser) cannot set httpOnly cookies.
-- `NEXT_PUBLIC_*` vars are inlined at **build** time → the Dockerfile build stage takes a `NEXT_PUBLIC_API_URL` ARG. `app/dashboard/page.tsx` is `force-dynamic` (prefetches the external API per request, avoiding a build-time fetch).
+- `NEXT_PUBLIC_*` vars are inlined at **build** time → the Dockerfile build stage takes a `NEXT_PUBLIC_API_URL` ARG. `app/[locale]/dashboard/page.tsx` is `force-dynamic` (prefetches the external API per request, avoiding a build-time fetch).
+- i18n (next-intl): routes live under `app/[locale]` (locales `en`/`ru`/`kk`, `localePrefix: "as-needed"` → `en` unprefixed). `proxy.ts` runs the cookie auth gate **first** (stripping a leading `/ru|/kk`), then hands off to `createMiddleware(routing)`; the matcher must stay site-wide. Every static page/layout needs `await params` + `setRequestLocale(locale)`.
+- Storybook is **10** (not 9) on `@storybook/nextjs-vite` (Vite builder, required by the Vitest addon); a third `storybook` Vitest project runs stories as browser tests via `provider: playwright()` (the factory, not the `'playwright'` string). The `storybook`/`build-storybook`/`test-storybook` scripts **set `NEXT_PUBLIC_API_URL`** because `preview.tsx` imports the MSW `handlers` → validated env.
+- PostHog is **optional**: unset `NEXT_PUBLIC_POSTHOG_KEY` ⇒ no-op (provider passthrough + helpers guard on `analyticsConfigured()`). Events go through the same-origin `/ingest` reverse-proxy rewrites (`next.config.ts` + `skipTrailingSlashRedirect`); consent is opt-out-by-default; manual `$pageview` (Suspense-wrapped `useSearchParams`).
+- SEO: `robots.ts`/`sitemap.ts`/`opengraph-image.tsx` must be **real files** in `app/`; `themeColor`/`colorScheme` live in the `viewport` export (not `metadata`); canonical/hreflang come from `src/shared/config/seo.ts`. `SITE_URL` keeps a `?? "http://localhost:3000"` fallback so `SKIP_ENV_VALIDATION=1 pnpm build` doesn't crash on `new URL(undefined)`.
 
 ## Do Not
 
