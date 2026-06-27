@@ -16,4 +16,6 @@ export function proxy(request: NextRequest) {
   return handleI18n(request);
 }
 
-export const config = { matcher: "/((?!api|_next|_vercel|.*\\..*).*)" };
+// Exclude `ingest` so the PostHog reverse-proxy rewrite (next.config.ts) isn't
+// locale-prefixed by the i18n middleware (which would 404 the capture endpoints).
+export const config = { matcher: "/((?!api|ingest|_next|_vercel|.*\\..*).*)" };
