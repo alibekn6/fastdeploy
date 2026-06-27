@@ -21,7 +21,7 @@ to go live (see `docs/stack/msw.md` for the MSW deletion checklist).
 | Task | Command |
 | --- | --- |
 | Dev (mocked) | `pnpm dev:mock` · plain: `pnpm dev` |
-| Lint / format | `pnpm lint` · `pnpm lint:fix` · CI: `pnpm ci` |
+| Lint / format | `pnpm lint` · `pnpm lint:fix` · CI: `pnpm lint:ci` |
 | FSD architecture lint | `pnpm lint:fsd` |
 | Type-check | `pnpm typecheck` |
 | Unit tests | `pnpm test` |

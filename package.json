@@ -12,7 +12,7 @@
     "lint:fix": "biome check --write",
     "lint:fsd": "steiger ./src",
     "typecheck": "tsc --noEmit",
-    "ci": "biome ci",
+    "lint:ci": "biome ci",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
     "test:coverage": "vitest run --coverage",

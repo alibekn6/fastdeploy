@@ -8,7 +8,7 @@ Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external
 
 - Install: `pnpm install` (Node 22; pnpm 11)
 - Dev with mocks: `pnpm dev:mock` (sets `NEXT_PUBLIC_API_MOCKING=enabled`) · plain dev: `pnpm dev`
-- Lint: `pnpm lint` · fix: `pnpm lint:fix` · CI lint: `pnpm ci` (Biome)
+- Lint: `pnpm lint` · fix: `pnpm lint:fix` · CI lint: `pnpm lint:ci` (Biome)
 - FSD lint: `pnpm lint:fsd` (Steiger over `./src`)
 - Type-check: `pnpm typecheck`
 - Unit tests: `pnpm test` · Integration (MSW at the network boundary, **no Docker**): `pnpm test:integration` · E2E: `pnpm e2e`
@@ -20,6 +20,7 @@ Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external
 - The Next App Router lives at the **root** `app/` as thin re-exports; FSD layers live under `src/` (including an FSD `src/app` with `providers/` + `styles/`).
 - Each slice's public API is its `index.ts`. Use **named** re-exports — never `export *`.
 - Shared config (`biome.json`, `steiger.config.ts`, `tsconfig.base.json`, `.nvmrc`, `commitlint.config.cjs`, `.husky/*`) is synced from the meta-repo's `tooling/shared/`; edit it there, not here.
+- Local deviation to upstream: `biome.json` was adjusted here (`$schema` → 2.5.1 and a `!**/globals.css` exclude for Tailwind v4 entry CSS); upstream these to the meta-repo's `tooling/shared/`.
 
 ## Gotchas
 
@@ -33,13 +34,13 @@ Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external
 
 - Do not `export *` from an `index.ts`. Use named re-exports (Steiger + the public-API rule).
 - Do not write the `session` cookie from client code outside mock mode — in production the backend sets it (Secure, httpOnly); the client write is gated by `NEXT_PUBLIC_API_MOCKING`.
-- Do not `git commit --no-verify`. The hook formats staged files; bypassing it makes `pnpm ci` (full-tree Biome) fail in CI.
+- Do not `git commit --no-verify`. The hook formats staged files; bypassing it makes `pnpm lint:ci` (full-tree Biome) fail in CI.
 - Do not add route files under the root `pages/` — it is an intentional empty placeholder that keeps Next from routing the FSD `src/pages` layer.
 
 ## Workflow
 
 - Pre-commit hook runs `lint-staged` + `steiger ./src` + `tsc`. Commits are Conventional (lowercase subject); use `pnpm cz`.
-- Before reporting done: `pnpm ci && pnpm lint:fsd && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build`.
+- Before reporting done: `pnpm lint:ci && pnpm lint:fsd && pnpm typecheck && pnpm test && pnpm test:integration && pnpm build`.
 - Use the per-feature skills + review subagents before changing a tool's setup (see the note at the top). Authoritative per-tool rules live in `docs/stack/`.
 
 ---
