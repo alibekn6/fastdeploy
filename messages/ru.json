@@ -1,0 +1,19 @@
+{
+  "Common": { "appName": "nextjs-frontend", "signOut": "Выйти" },
+  "Auth": {
+    "title": "Вход",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "submit": "Войти"
+  },
+  "Dashboard": { "title": "Панель управления", "posts": "Публикации" },
+  "Home": { "title": "Главная", "welcome": "Добро пожаловать" },
+  "Metadata": {
+    "homeTitle": "Главная",
+    "homeDescription": "Шаблон фронтенда на Next.js 16 с архитектурой FSD.",
+    "loginTitle": "Вход",
+    "loginDescription": "Войдите в свою учётную запись.",
+    "dashboardTitle": "Панель управления",
+    "dashboardDescription": "Ваша панель управления."
+  }
+}

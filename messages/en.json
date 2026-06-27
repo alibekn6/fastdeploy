@@ -1,0 +1,14 @@
+{
+  "Common": { "appName": "nextjs-frontend", "signOut": "Sign out" },
+  "Auth": { "title": "Sign in", "email": "Email", "password": "Password", "submit": "Sign in" },
+  "Dashboard": { "title": "Dashboard", "posts": "Posts" },
+  "Home": { "title": "Home", "welcome": "Welcome" },
+  "Metadata": {
+    "homeTitle": "Home",
+    "homeDescription": "A Next.js 16 FSD frontend boilerplate.",
+    "loginTitle": "Sign in",
+    "loginDescription": "Sign in to your account.",
+    "dashboardTitle": "Dashboard",
+    "dashboardDescription": "Your dashboard."
+  }
+}

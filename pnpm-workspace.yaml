@@ -1,6 +1,8 @@
 # pnpm blocks dependency build scripts by default. sharp (Next.js image
 # optimization) ships a native binary built via a postinstall script, so allow it.
 allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
   cpu-features: true
   esbuild: true
   msw: true

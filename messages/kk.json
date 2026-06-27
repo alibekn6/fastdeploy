@@ -1,0 +1,19 @@
+{
+  "Common": { "appName": "nextjs-frontend", "signOut": "Шығу" },
+  "Auth": {
+    "title": "Кіру",
+    "email": "Электрондық пошта",
+    "password": "Құпия сөз",
+    "submit": "Кіру"
+  },
+  "Dashboard": { "title": "Басқару тақтасы", "posts": "Жазбалар" },
+  "Home": { "title": "Басты бет", "welcome": "Қош келдіңіз" },
+  "Metadata": {
+    "homeTitle": "Басты бет",
+    "homeDescription": "Next.js 16 FSD фронтенд бастапқы үлгісі.",
+    "loginTitle": "Кіру",
+    "loginDescription": "Тіркелгіңізге кіріңіз.",
+    "dashboardTitle": "Басқару тақтасы",
+    "dashboardDescription": "Сіздің басқару тақтаңыз."
+  }
+}
