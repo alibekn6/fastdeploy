@@ -16,12 +16,13 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
+// The boilerplate ships only a light theme (globals.css defines no `.dark`
+// palette), so declare `light` — otherwise the browser applies dark UA defaults
+// under OS dark mode and unstyled text (e.g. the outline sign-out button) turns
+// white-on-white. Add a dark `@theme` + a `.dark` toggle to support dark mode.
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-  ],
-  colorScheme: "dark light",
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export function generateStaticParams() {
@@ -40,7 +41,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body>
+      <body className="bg-background text-foreground">
         <NextIntlClientProvider>
           <PostHogProvider>
             <MswProvider>
