@@ -1,6 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { resetUser } from "@/shared/analytics";
 import { http } from "@/shared/api/http";
 import { SESSION_COOKIE } from "@/shared/config/auth";
 import { env } from "@/shared/config/env";
@@ -21,6 +22,7 @@ export function Header() {
           if (env.NEXT_PUBLIC_API_MOCKING === "enabled") {
             document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
           }
+          resetUser();
           router.push(routes.login);
         }}
       >

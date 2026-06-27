@@ -1,3 +1,4 @@
+import { identifyUser } from "@/shared/analytics";
 import { http } from "@/shared/api/http";
 import { SESSION_COOKIE } from "@/shared/config/auth";
 import { env } from "@/shared/config/env";
@@ -12,4 +13,7 @@ export async function signIn(input: SignInInput) {
   if (env.NEXT_PUBLIC_API_MOCKING === "enabled") {
     document.cookie = `${SESSION_COOKIE}=${token}; path=/; SameSite=Lax`;
   }
+  // Boilerplate: the mock backend only returns a token. In production pass the
+  // stable backend user id (e.g. from a /me endpoint) as the distinct id.
+  identifyUser(token);
 }

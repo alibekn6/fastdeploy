@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { MswProvider, QueryProvider } from "@/app/providers";
+import { ConsentBanner, PageViewTracker, PostHogProvider } from "@/shared/analytics";
 import { routing } from "@/shared/i18n";
 import "@/app/styles/globals.css";
 
@@ -23,9 +24,13 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body>
         <NextIntlClientProvider>
-          <MswProvider>
-            <QueryProvider>{children}</QueryProvider>
-          </MswProvider>
+          <PostHogProvider>
+            <MswProvider>
+              <QueryProvider>{children}</QueryProvider>
+            </MswProvider>
+            <PageViewTracker />
+            <ConsentBanner />
+          </PostHogProvider>
         </NextIntlClientProvider>
       </body>
     </html>

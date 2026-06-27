@@ -3,6 +3,7 @@
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true
+  core-js: true
   cpu-features: true
   esbuild: true
   msw: true
