@@ -50,3 +50,9 @@ next-env.d.ts
 # local superpowers working artifacts (specs/plans/ledgers — kept local, never committed)
 docs/superpowers/
 .superpowers/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/

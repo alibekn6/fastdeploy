@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "nextjs_frontend",
+  "project_id": "d51b409d-5bef-499b-8dc2-d45bae423d69"
+}
