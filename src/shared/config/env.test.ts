@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { secureApiUrl, secureWsUrl } from "./env";
+import { secureAnalyticsHost, secureApiUrl, secureWsUrl } from "./env";
 
 // A20 (spec §2.7): the env refines are build-time enforcement that production
 // cannot ship plaintext transports — `ws://`/`http://` pass only on localhost.
@@ -42,5 +42,25 @@ describe("secureApiUrl (NEXT_PUBLIC_API_URL refine)", () => {
     "not-a-url",
   ])("rejects %s", (url) => {
     expect(secureApiUrl.safeParse(url).success).toBe(false);
+  });
+});
+
+describe("secureAnalyticsHost (NEXT_PUBLIC_POSTHOG_HOST refine)", () => {
+  it.each([
+    "https://ph.example.com",
+    "https://ph.example.com/base",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+  ])("accepts %s", (url) => {
+    expect(secureAnalyticsHost.safeParse(url).success).toBe(true);
+  });
+
+  it.each([
+    // The `/ingest` proxy replays browser events (and their cookies) to this
+    // host — plaintext off-localhost is the same transport risk as the API URL.
+    "http://ph.example.com",
+    "not-a-url",
+  ])("rejects %s", (url) => {
+    expect(secureAnalyticsHost.safeParse(url).success).toBe(false);
   });
 });

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { env } from "@/shared/config/env";
 import { routes } from "@/shared/config/routes";
 import { routing } from "@/shared/i18n/routing";
-import type { RefreshedMockTokens } from "./refreshed-tokens";
+import { notifyRefreshedTokens, type RefreshedMockTokens } from "./refreshed-tokens";
 
 /**
  * Endpoints excluded from the 401→refresh path. The four token-lifecycle
@@ -32,8 +32,47 @@ export function isAuthUrl(url: string): boolean {
  * backend sees exactly one `auth/refresh` per expiry burst. SSR-safe: the
  * promise holds no request-specific state (cookies ride each request), so the
  * worst case for concurrent server-side 401s is sharing one refresh call.
+ *
+ * BOTH refresh mechanisms share this gate — the `afterResponse` hook below and
+ * the `auth/me` session probe's `refreshSessionQuietly()`. They fire on the
+ * same page load from the same stale access token, so keeping separate gates
+ * would put two `auth/refresh` calls in flight; under refresh-token rotation
+ * the loser gets a false 401, and if that loser is the hook it escalates to a
+ * spurious logout + redirect for a session that was in fact still valid.
+ *
+ * It resolves `true`/`false` and NEVER rejects: the two paths disagree about
+ * what a failure means (the hook escapes the session, the probe silently
+ * degrades to anonymous), so the outcome is data, not control flow.
  */
-let refreshPromise: Promise<void> | null = null;
+let refreshPromise: Promise<boolean> | null = null;
+
+/**
+ * The promise whose failure has already been escaped, so N concurrent hook
+ * callers awaiting one shared refresh still produce exactly ONE `auth/logout` +
+ * ONE redirect (the A8 measure). Keyed by promise identity rather than a bare
+ * boolean so a LATER burst can still escape.
+ */
+let escapedFor: Promise<boolean> | null = null;
+
+/** Start (or join) the one in-flight refresh for this burst. Never rejects. */
+function sharedRefresh(onTokens?: (tokens: RefreshedMockTokens) => void): Promise<boolean> {
+  refreshPromise ??= fetch(new URL("auth/refresh", env.NEXT_PUBLIC_API_URL), {
+    method: "POST",
+    credentials: "include",
+  })
+    .then(async (refreshResponse) => {
+      if (!refreshResponse.ok) return false;
+      // Mock mode only: persist the rotated access token so the NEXT 401
+      // burst refreshes against the fresh cookie instead of the stale one.
+      if (onTokens) await deliverMockTokens(refreshResponse, onTokens);
+      return true;
+    })
+    .catch(() => false)
+    .finally(() => {
+      refreshPromise = null;
+    });
+  return refreshPromise;
+}
 
 /**
  * Mock-mode-only refresh envelope. Production bodies never carry tokens, so an
@@ -82,50 +121,61 @@ export function createRefreshHook(
   return async ({ request, response }) => {
     if (response.status !== 401 || isAuthUrl(request.url)) return undefined;
 
-    if (!refreshPromise) {
-      refreshPromise = fetch(new URL("auth/refresh", env.NEXT_PUBLIC_API_URL), {
+    const pending = sharedRefresh(onTokens);
+    if (await pending) return await fetch(request.clone());
+
+    // Escape EXACTLY ONCE per failure burst — guarded on the shared promise's
+    // identity, not per awaiting caller, so N concurrent 401s produce one
+    // logout and one redirect (the A8 redirect-loop measure). A failed refresh
+    // (e.g. server-side revocation) can leave an UNEXPIRED access cookie
+    // behind: the route guard decodes it as live and would bounce /login
+    // straight back to /dashboard forever. Only the backend can delete the
+    // httpOnly cookies — `auth/logout` clears them unconditionally (no auth
+    // check, spec §2.4), breaking that loop. It is fire-and-forget: per
+    // contract it always returns 200, so the swallowed failures are
+    // transport-level only, and the redirect never waits on or depends on the
+    // logout outcome. Callers just keep their original 401.
+    if (escapedFor !== pending) {
+      escapedFor = pending;
+      fetch(new URL("auth/logout", env.NEXT_PUBLIC_API_URL), {
         method: "POST",
         credentials: "include",
-      })
-        .then(async (refreshResponse) => {
-          if (!refreshResponse.ok) throw new Error("refresh_failed");
-          // Mock mode only: persist the rotated access token so the NEXT 401
-          // burst refreshes against the fresh cookie instead of the stale one.
-          if (onTokens) await deliverMockTokens(refreshResponse, onTokens);
-        })
-        .catch((error: unknown) => {
-          // Escape EXACTLY ONCE per failure burst — inside the shared promise
-          // chain, not per awaiting caller, so N concurrent 401s produce one
-          // logout and one redirect (the A8 redirect-loop measure). A failed
-          // refresh (e.g. server-side revocation) can leave an UNEXPIRED
-          // access cookie behind: the route guard decodes it as live and would
-          // bounce /login straight back to /dashboard forever. Only the
-          // backend can delete the httpOnly cookies — `auth/logout` clears
-          // them unconditionally (no auth check, spec §2.4), breaking that
-          // loop. It is fire-and-forget: per contract it always returns 200,
-          // so the swallowed failures are transport-level only, and the
-          // redirect never waits on or depends on the logout outcome.
-          fetch(new URL("auth/logout", env.NEXT_PUBLIC_API_URL), {
-            method: "POST",
-            credentials: "include",
-          }).catch(() => {});
-          onAuthFailure();
-          throw error;
-        })
-        .finally(() => {
-          refreshPromise = null;
-        });
+      }).catch(() => {});
+      onAuthFailure();
     }
-
-    try {
-      await refreshPromise;
-      return await fetch(request.clone());
-    } catch {
-      // Refresh failed: the shared chain above already performed the one
-      // logout + redirect for this burst; every caller just keeps its 401.
-      return undefined;
-    }
+    return undefined;
   };
+}
+
+/**
+ * One quiet `auth/refresh` for the `auth/me` session probe (spec §2.6 companion).
+ *
+ * `auth/me` is — correctly — excluded from `createRefreshHook`: its 401 is a
+ * session probe, and refreshing inside the generic hook would bounce anonymous
+ * visitors off public pages and re-fire on the post-escape login page. But that
+ * exclusion also means an expired `access_token` with a live `refresh_token`
+ * renders as signed-out, because nothing refreshes proactively and access
+ * tokens only live `ACCESS_TTL_SECONDS`. This is the narrow escape hatch.
+ *
+ * It JOINS the hook's `sharedRefresh` gate (a stale access token 401s the
+ * session probe and every data query in the same burst, so they must not each
+ * refresh) but takes NO part in the escape: it merely resolves `false` and lets
+ * the caller fall back to `anonymousSession`. It never redirects and never logs
+ * out — escape stays owned by the hook, which is what keeps an anonymous
+ * visitor on a public page from being bounced to /login.
+ *
+ * Raw `fetch` under the hood (not `http`) keeps it off the ky hooks entirely,
+ * so it cannot recurse; the caller re-reads `auth/me` at most once, making the
+ * path bounded rather than merely loop-guarded. Cookie state is never consulted
+ * (production cookies are httpOnly and unreadable), so a genuinely anonymous
+ * visitor simply spends one 401 here and gives up.
+ */
+export function refreshSessionQuietly(): Promise<boolean> {
+  // Mock mode only: land the rotated access token in `document.cookie` so the
+  // re-read of `auth/me` presents the fresh token instead of the stale one.
+  return sharedRefresh(
+    env.NEXT_PUBLIC_API_MOCKING === "enabled" ? notifyRefreshedTokens : undefined,
+  );
 }
 
 /** Locale-preserving login path: `/ru/dashboard` → `/ru/login`, `en` unprefixed. */

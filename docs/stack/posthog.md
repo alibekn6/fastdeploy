@@ -21,14 +21,16 @@ PostHog is the product-analytics client. It is wired to be **fully optional**: w
 ### Wiring
 
 - `src/shared/config/env.ts` — `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` are `.optional()`; leaving the key blank disables analytics.
-- `next.config.ts` — `skipTrailingSlashRedirect: true` + `rewrites()` mapping `/ingest/static/:path*` and `/ingest/:path*` to `NEXT_PUBLIC_POSTHOG_HOST` (returns `[]` when the host is unset).
+- `next.config.ts` — `skipTrailingSlashRedirect: true` only. `/ingest` is deliberately **not** a `rewrites()` entry.
+- `app/ingest/[...path]/route.ts` + `src/shared/analytics/ingest-proxy.ts` — the `/ingest` reverse proxy as an explicit route handler. Next's `rewrites()` proxy has no timeout and no error boundary, so an unreachable `NEXT_PUBLIC_POSTHOG_HOST` threw `ECONNREFUSED` out of the request pipeline on every captured event and could take the whole server process down (libuv assert). The handler bounds the upstream call with `AbortSignal.timeout`, catches everything, and degrades to a **502** with one concise `console.warn` line. It also resolves its upstream through `analyticsConfigured()`, so with the key unset the route is inert (**503**) and never opens a connection — the rewrite used to proxy regardless of the key.
 - `app/[locale]/layout.tsx` — `PostHogProvider` wraps the tree; `PageViewTracker` + `ConsentBanner` are siblings.
 - `identifyUser(token)` on login (`src/features/auth/api/sign-in.ts`); `resetUser()` on logout (`src/widgets/header/ui/header.tsx`).
 
 ## ✅ Best practices
 
 - **No-op when unconfigured**: env `.optional()`, provider passthrough, every helper guards on `analyticsConfigured()`.
-- `/ingest` reverse-proxy rewrites + `skipTrailingSlashRedirect` for ad-block resilience; `ui_host` points at the self-hosted instance.
+- `/ingest` same-origin reverse proxy (a route handler, not a rewrite) + `skipTrailingSlashRedirect` for ad-block resilience; `ui_host` points at the self-hosted instance.
+- **A dead analytics host must never affect app availability.** Any upstream proxying added here needs a timeout and a catch; never let an analytics fetch reject into the request pipeline.
 - Manual `$pageview` (the App Router has no router events) inside a **Suspense-wrapped** `useSearchParams` component.
 - `capture_pageleave: true`; `person_profiles: "identified_only"`.
 - Consent opt-out-by-default + `persistence: "memory"`; on accept, upgrade persistence and `opt_in_capturing()`.

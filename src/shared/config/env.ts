@@ -46,6 +46,17 @@ export const secureWsUrl = z
     },
   );
 
+/**
+ * Analytics host: same transport rule as the API URL. The `/ingest` route
+ * handler replays browser events (and whatever cookies ride them) to this
+ * origin server-side, so plaintext off-localhost is the same exposure.
+ *
+ * Reachability is deliberately NOT validated here — it can't be, at build time.
+ * A dead host is instead contained at runtime by the `/ingest` route handler,
+ * which degrades to a 502 rather than crashing the server.
+ */
+export const secureAnalyticsHost = secureApiUrl;
+
 export const env = createEnv({
   server: { NODE_ENV: z.enum(["development", "production", "test"]).default("development") },
   client: {
@@ -57,7 +68,7 @@ export const env = createEnv({
     NEXT_PUBLIC_API_MOCKING: z.enum(["enabled", "disabled"]).default("disabled"),
     NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
-    NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
+    NEXT_PUBLIC_POSTHOG_HOST: secureAnalyticsHost.optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,

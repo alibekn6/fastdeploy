@@ -28,6 +28,33 @@ test("a live access-token cookie on /login bounces to /dashboard", async ({ cont
   await expect(page).toHaveURL(/\/dashboard$/);
 });
 
+test("an EXPIRED access token with a live refresh token still renders the signed-in header", async ({
+  context,
+  page,
+}) => {
+  const now = Math.floor(Date.now() / 1000);
+  const claims = { sub: "u1", email: "user@example.com" };
+  await context.addCookies([
+    {
+      name: SESSION_COOKIE,
+      value: mintJwt({ ...claims, exp: now - 60, iat: now - 960 }),
+      url: BASE,
+    },
+    {
+      name: REFRESH_COOKIE,
+      value: mintJwt({ ...claims, exp: now + 30 * 24 * 3600, iat: now }),
+      url: BASE,
+    },
+  ]);
+  await page.goto("/dashboard");
+
+  // The bug: `auth/me` is (correctly) excluded from the ky refresh hook, so its
+  // 401 became `anonymousSession` and the header advertised "Sign in" to a user
+  // whose session was merely 15 minutes stale. It must now refresh and recover.
+  await expect(page.getByTestId("user-email")).toHaveText("user@example.com");
+  await expect(page.getByRole("link", { name: "Sign in" })).toHaveCount(0);
+});
+
 test("a refresh-token-only cookie on /login stays on /login", async ({ context, page }) => {
   await context.addCookies([{ name: REFRESH_COOKIE, value: "opaque-refresh", url: BASE }]);
   await page.goto("/login");
