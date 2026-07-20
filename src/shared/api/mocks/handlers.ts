@@ -68,6 +68,22 @@ export const handlers = [
       },
     });
   }),
+  // Stateless, deterministic on input: `taken@example.com` always 409s (the
+  // A4 email-taken probe); any other email registers fresh (spec §2.4 — the
+  // distinct message is an accepted, documented enumeration tradeoff).
+  http.post(api("/auth/register"), async ({ request }) => {
+    const { email } = (await request.json()) as { email: string };
+    if (email === "taken@example.com") {
+      return authError(409, "email_taken", "Email already registered");
+    }
+    return envelope({
+      message: "Registered",
+      mock_tokens: {
+        access_token: mintMockJwt({ sub: "u1", email, ttlSeconds: ACCESS_TTL_SECONDS }),
+        refresh_token: mintMockJwt({ sub: "u1", email, ttlSeconds: REFRESH_TTL_SECONDS }),
+      },
+    });
+  }),
   // Validates ONLY the refresh_token cookie (presence — it is opaque to the
   // client); the access_token is not validated at all. No refresh rotation.
   http.post(api("/auth/refresh"), ({ cookies }) => {

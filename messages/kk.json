@@ -9,7 +9,14 @@
     "passwordRequired": "Құпия сөзді енгізіңіз",
     "invalidCredentials": "Электрондық пошта немесе құпия сөз қате",
     "tooManyAttempts": "Әрекеттер тым көп. Кейінірек қайталап көріңіз.",
-    "serverError": "Бірдеңе дұрыс болмады. Қайталап көріңіз."
+    "serverError": "Бірдеңе дұрыс болмады. Қайталап көріңіз.",
+    "signUpTitle": "Тіркелгі жасау",
+    "confirmPassword": "Құпия сөзді растаңыз",
+    "signUpSubmit": "Тіркелгі жасау",
+    "passwordTooShort": "Құпия сөз кемінде 12 таңбадан тұруы керек",
+    "passwordTooLong": "Құпия сөз 128 таңбадан аспауы керек",
+    "passwordMismatch": "Құпия сөздер сәйкес келмейді",
+    "emailTaken": "Бұл электрондық поштамен тіркелгі бұрыннан бар"
   },
   "Dashboard": { "title": "Басқару тақтасы", "posts": "Жазбалар" },
   "Consent": {
@@ -29,6 +36,8 @@
     "homeDescription": "Next.js 16 FSD фронтенд бастапқы үлгісі.",
     "loginTitle": "Кіру",
     "loginDescription": "Тіркелгіңізге кіріңіз.",
+    "signupTitle": "Тіркелгі жасау",
+    "signupDescription": "Тіркелгі жасаңыз.",
     "dashboardTitle": "Басқару тақтасы",
     "dashboardDescription": "Сіздің басқару тақтаңыз."
   }
