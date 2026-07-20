@@ -69,3 +69,34 @@ export const Clickable: Story = {
     await expect(args.onClick).toHaveBeenCalled();
   },
 };
+
+/**
+ * All variants under the dark class — a11y (`test: "error"`) runs on both
+ * themes, and the primitives carry `dark:` overrides (notably
+ * `dark:bg-destructive/60`) that only this story exercises.
+ */
+export const DarkTheme: Story = {
+  parameters: { theme: "dark" },
+  render: (args) => (
+    <div className="flex flex-wrap items-center gap-3">
+      <Button {...args} variant="default">
+        Default
+      </Button>
+      <Button {...args} variant="outline">
+        Outline
+      </Button>
+      <Button {...args} variant="secondary">
+        Secondary
+      </Button>
+      <Button {...args} variant="destructive">
+        Destructive
+      </Button>
+      <Button {...args} variant="ghost">
+        Ghost
+      </Button>
+      <Button {...args} variant="link">
+        Link
+      </Button>
+    </div>
+  ),
+};

@@ -77,3 +77,6 @@ export const ShowsValidationOnEmptySubmit: Story = {
     await expect(args.onSubmit).not.toHaveBeenCalled();
   },
 };
+
+/** Same story under the dark class — a11y (`test: "error"`) runs on both themes. */
+export const DarkTheme: Story = { parameters: { theme: "dark" } };

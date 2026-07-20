@@ -33,6 +33,26 @@ const withQueryClient: Decorator = (Story) => {
   );
 };
 
+/**
+ * Per-story dark-theme opt-in: `parameters: { theme: "dark" }`.
+ *
+ * `withThemeByClassName` below still drives the toolbar toggle in the
+ * Storybook UI, but it cannot carry the a11y-on-both-themes gate: it applies
+ * the class from `storybook/preview-api`'s `useEffect`, which never runs in the
+ * Vitest portable-stories runtime, and per-story `globals` are not merged there
+ * either (`context.globals` arrives without a `theme` key). Tailwind's dark
+ * variant is `&:is(.dark *)` — satisfied by ANY ancestor — so wrapping the
+ * canvas is equivalent to the html class and is deterministic under test.
+ */
+const withStoryTheme: Decorator = (Story, context) =>
+  context.parameters.theme === "dark" ? (
+    <div className="dark">
+      <Story />
+    </div>
+  ) : (
+    <Story />
+  );
+
 const withI18n: Decorator = (Story, context) => {
   const locale = (context.globals.locale ?? "en") as keyof typeof messagesByLocale;
   return (
@@ -59,6 +79,7 @@ const preview: Preview = {
       defaultTheme: "light",
       parentSelector: "html",
     }),
+    withStoryTheme,
   ],
   globalTypes: {
     locale: {

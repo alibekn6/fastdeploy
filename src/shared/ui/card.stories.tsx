@@ -46,3 +46,6 @@ export const Default: Story = {
     </Card>
   ),
 };
+
+/** Same story under the dark class — a11y (`test: "error"`) runs on both themes. */
+export const DarkTheme: Story = { ...Default, parameters: { theme: "dark" } };
