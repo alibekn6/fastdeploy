@@ -1,22 +1,23 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import en from "../messages/en.json";
 import { commentsFixture, postsFixture } from "../src/shared/api/mocks/fixtures";
+import { MOCK_COMMENTS_FAILURE_COOKIE } from "../src/shared/api/mocks/mock-control";
+
+const BASE = `http://localhost:${process.env.PORT ?? 3000}`;
 
 const [post] = postsFixture;
 const [firstComment] = commentsFixture;
 if (!post || !firstComment) throw new Error("mock fixtures must not be empty");
 
 /**
- * MSW failure injection (mock mode only, see src/shared/api/mocks/mock-control.ts):
- * - server runtime: POST /api/mock-control forwards to the MSW-intercepted
- *   `__mock/comments-failure` control endpoint inside the Next server process;
- * - browser runtime: `globalThis.__mswCommentsFailure` is injected per
- *   navigation via addInitScript (browser handler state resets on navigation).
+ * MSW failure injection (mock mode only, see src/shared/api/mocks/mock-control.ts).
+ * BOTH signals are scoped to THIS test's browser context, never to the shared
+ * dev-server process, so the suite stays safe under `fullyParallel` workers:
+ * - server runtime (SSR prefetch): the MOCK_COMMENTS_FAILURE_COOKIE cookie,
+ *   which node.ts reads off the current Next request;
+ * - browser runtime (client refetch): `globalThis.__mswCommentsFailure`,
+ *   injected per navigation via addInitScript.
  */
-async function setServerCommentsFailure(request: APIRequestContext, status: number | null) {
-  const response = await request.post("/api/mock-control", { data: { status } });
-  expect(response.ok()).toBeTruthy();
-}
 
 function metaContent(html: string, property: string): string {
   const tag = html.match(new RegExp(`<meta[^>]*property="${property}"[^>]*>`))?.[0] ?? "";
@@ -51,7 +52,10 @@ test.describe("SSR streaming example", () => {
       timeout: 15_000,
     });
     await expect(page.getByText(firstComment.body)).toBeHidden();
-    await expect(page.getByText(firstComment.body)).toBeVisible({ timeout: 15_000 });
+    // Generous ceiling, not a streaming assertion: the hidden-then-visible
+    // ORDER above is what proves streaming. Parallel workers sharing one dev
+    // server can starve this window well past 15 s.
+    await expect(page.getByText(firstComment.body)).toBeVisible({ timeout: 30_000 });
   });
 
   test("A12: an unknown id responds 404 and renders the localized not-found UI", async ({
@@ -63,34 +67,33 @@ test.describe("SSR streaming example", () => {
   });
 
   test("A12: a comments 5xx shows the error boundary; retry after lifting the override renders the comments in fixture order", async ({
+    context,
     page,
   }) => {
     await page.addInitScript(() => {
       globalThis.__mswCommentsFailure = 500;
     });
-    await setServerCommentsFailure(page.request, 500);
-    try {
-      await page.goto("/examples/ssr/1");
-      const fallback = page.getByTestId("error-boundary-fallback");
-      await expect(fallback).toBeVisible({ timeout: 30_000 });
-      const retry = fallback.getByRole("button", { name: en.Error.retry });
-      await expect(retry).toBeVisible();
+    await context.addCookies([{ name: MOCK_COMMENTS_FAILURE_COOKIE, value: "500", url: BASE }]);
 
-      await setServerCommentsFailure(page.request, null);
-      await page.evaluate(() => {
-        globalThis.__mswCommentsFailure = null;
-      });
-      await retry.click();
+    await page.goto("/examples/ssr/1");
+    const fallback = page.getByTestId("error-boundary-fallback");
+    await expect(fallback).toBeVisible({ timeout: 30_000 });
+    const retry = fallback.getByRole("button", { name: en.Error.retry });
+    await expect(retry).toBeVisible();
 
-      const items = page
-        .getByRole("list", { name: en.SsrExample.commentsTitle })
-        .getByRole("listitem");
-      await expect(items).toHaveText(
-        commentsFixture.map((comment) => new RegExp(escapeRegExp(comment.body))),
-        { timeout: 15_000 },
-      );
-    } finally {
-      await setServerCommentsFailure(page.request, null);
-    }
+    await context.clearCookies({ name: MOCK_COMMENTS_FAILURE_COOKIE });
+    await page.evaluate(() => {
+      globalThis.__mswCommentsFailure = null;
+    });
+    await retry.click();
+
+    const items = page
+      .getByRole("list", { name: en.SsrExample.commentsTitle })
+      .getByRole("listitem");
+    await expect(items).toHaveText(
+      commentsFixture.map((comment) => new RegExp(escapeRegExp(comment.body))),
+      // Same rationale as A11: the recovery is what matters, not its latency.
+      { timeout: 30_000 },
+    );
   });
 });

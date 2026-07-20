@@ -1,25 +1,49 @@
 // Test-only failure injection for the comments endpoint (mock mode only — the
-// state is consulted exclusively by the MSW handlers, which never run outside
-// NEXT_PUBLIC_API_MOCKING=enabled). E2E specs cannot reach `server.use(...)`
-// inside the Next server process, so they flip this flag instead:
+// signals below are consulted exclusively by the MSW handlers, which are only
+// registered under NEXT_PUBLIC_API_MOCKING=enabled).
 //
-// - Node runtime (SSR prefetch): `POST /api/mock-control` → a server-side fetch
-//   to `__mock/comments-failure` that MSW itself intercepts, so the flag flips
-//   inside the same module graph `instrumentation.ts` registered.
-// - Browser runtime (client refetch): the browser worker resolves handlers in
-//   page context, whose module state resets on navigation — so Playwright
-//   injects `globalThis.__mswCommentsFailure` via `addInitScript` instead.
+// PER-REQUEST BY CONSTRUCTION — there is deliberately NO module-level mutable
+// state here. Playwright runs `fullyParallel` with several workers against ONE
+// dev server, so a process-wide flag let one worker's failure override break a
+// concurrent worker's spec. Every signal below is scoped to a single request or
+// to a single browser context instead:
+//
+// - Browser runtime (client refetch): `globalThis.__mswCommentsFailure`,
+//   injected per navigation with `addInitScript` — scoped to one Playwright
+//   browser context, so it cannot leak into another worker's page.
+// - Node runtime (SSR prefetch): the `x-mock-comments-failure` request header.
+//   `node.ts` derives it per Next request from the MOCK_COMMENTS_FAILURE_COOKIE
+//   the spec plants on its own browser context; integration tests set the
+//   header directly.
 
 declare global {
   var __mswCommentsFailure: number | null | undefined;
 }
 
-let failure: number | null = null;
+/** Per-request failure signal understood by the shared comments handler. */
+export const COMMENTS_FAILURE_HEADER = "x-mock-comments-failure";
 
-export function setCommentsFailure(status: number | null) {
-  failure = status;
+/**
+ * Cookie the e2e spec plants on its own browser context; `node.ts` turns it
+ * into the header above for the SSR fetch that the same navigation triggers.
+ */
+export const MOCK_COMMENTS_FAILURE_COOKIE = "__mock_comments_failure";
+
+/** Parse a failure status from a header/cookie value; anything invalid = no failure. */
+export function parseFailureStatus(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const status = Number(value);
+  return Number.isInteger(status) && status >= 400 && status <= 599 ? status : null;
 }
 
-export function getCommentsFailure(): number | null {
-  return globalThis.__mswCommentsFailure ?? failure;
+/**
+ * Resolve the failure status for ONE request: its own header first, then the
+ * browser-context global. Never reads shared process state.
+ */
+export function commentsFailureFor(request: Request): number | null {
+  return (
+    parseFailureStatus(request.headers.get(COMMENTS_FAILURE_HEADER)) ??
+    globalThis.__mswCommentsFailure ??
+    null
+  );
 }
