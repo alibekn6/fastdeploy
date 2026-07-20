@@ -10,8 +10,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        // No `dark:bg-destructive/60` (upstream shadcn): this repo ships a
+        // single light token palette, so fading the red only lightens it
+        // against an unchanged white surface — #ea7e7e behind white text is
+        // 2.69:1, well under the 4.5:1 gate. The opaque token reads correctly
+        // in both themes; reinstate a faded variant only alongside real dark
+        // surface tokens.
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
+          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
         outline:
           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",

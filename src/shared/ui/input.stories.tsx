@@ -37,3 +37,9 @@ export const Typing: Story = {
     await expect(input.value).toBe("ada@example.com");
   },
 };
+
+/** Same story under the dark class — a11y (`test: "error"`) runs on both themes. */
+export const DarkTheme: Story = { parameters: { theme: "dark" } };
+
+/** Invalid state: the `aria-invalid` ring has its own `dark:` override. */
+export const Invalid: Story = { args: { "aria-invalid": true } };
