@@ -14,6 +14,24 @@
     "tagline": "FSD + Next.js boilerplate.",
     "getStarted": "Get started"
   },
+  "SsrExample": {
+    "eyebrow": "Streaming SSR example",
+    "intro": "The post arrives with the first byte of HTML; comments come from a deliberately slow endpoint and stream in through a nested Suspense boundary about two seconds later.",
+    "commentsTitle": "Comments",
+    "commentsCount": "{count, plural, one {# comment} other {# comments}}",
+    "commentsLoading": "Loading comments",
+    "loading": "Loading the post",
+    "backHome": "Back to home",
+    "notFoundTitle": "Post not found",
+    "notFoundBody": "There is no post with this id. The example data ships a single post.",
+    "notFoundCta": "Open the example post",
+    "metaDescription": "{title}: a streaming SSR example where the post renders immediately and comments stream in."
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "body": "An unexpected error interrupted this page. Retrying usually fixes it.",
+    "retry": "Try again"
+  },
   "Metadata": {
     "homeTitle": "Home",
     "homeDescription": "A Next.js 16 FSD frontend boilerplate.",

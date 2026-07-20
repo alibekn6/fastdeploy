@@ -1,4 +1,5 @@
 import ky from "ky";
+import { mockWorkerReady } from "@/shared/api/mocks/worker-ready";
 import { env } from "@/shared/config/env";
 
 export const http = ky.create({
@@ -10,5 +11,12 @@ export const http = ky.create({
   credentials: "include",
   retry: { limit: 2 },
   timeout: 15_000,
-  hooks: { beforeRequest: [({ request }) => request.headers.set("Accept", "application/json")] },
+  hooks: {
+    beforeRequest: [
+      // In mock mode the browser must not fetch before the MSW worker is live;
+      // resolved immediately on the server and when mocking is disabled.
+      () => mockWorkerReady().then(() => undefined),
+      ({ request }) => request.headers.set("Accept", "application/json"),
+    ],
+  },
 });
