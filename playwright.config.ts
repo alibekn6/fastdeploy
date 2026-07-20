@@ -12,7 +12,16 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
-  workers: isCI ? 1 : undefined,
+  // Locally this is `pnpm dev:mock` (one Turbopack dev server, not the built
+  // `pnpm start` CI uses) — `workers: undefined` defaults to one worker per
+  // core, and that many concurrent navigations against a single dev server
+  // triggers cold-compile contention: `e2e/auth.spec.ts` signup timing out on
+  // `getByLabel('Email')` with the Next dev error overlay in the page
+  // snapshot, even though the same test passes 3/3 in isolation. Capped to 4
+  // (validated with 5 consecutive cold `rm -rf .next && pnpm e2e` runs, all
+  // green) — enough parallelism to keep local iteration fast without
+  // saturating the one dev server it's actually served by.
+  workers: isCI ? 1 : 4,
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : "html",
   use: { baseURL, trace: "on-first-retry" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
