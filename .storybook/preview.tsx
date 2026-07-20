@@ -1,7 +1,9 @@
 import { withThemeByClassName } from "@storybook/addon-themes";
 import type { Decorator, Preview } from "@storybook/nextjs-vite";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { initialize, mswLoader } from "msw-storybook-addon";
 import { NextIntlClientProvider } from "next-intl";
+import { useState } from "react";
 import en from "../messages/en.json";
 import kk from "../messages/kk.json";
 import ru from "../messages/ru.json";
@@ -11,6 +13,19 @@ import "../src/app/styles/globals.css";
 initialize({ onUnhandledRequest: "bypass" }, handlers);
 
 const messagesByLocale = { en, ru, kk } as const;
+
+// Fresh QueryClient per story render — a module-level shared instance would
+// leak cache between stories/tests.
+const withQueryClient: Decorator = (Story) => {
+  const [queryClient] = useState(
+    () => new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+  );
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Story />
+    </QueryClientProvider>
+  );
+};
 
 const withI18n: Decorator = (Story, context) => {
   const locale = (context.globals.locale ?? "en") as keyof typeof messagesByLocale;
@@ -24,10 +39,14 @@ const withI18n: Decorator = (Story, context) => {
 const preview: Preview = {
   loaders: [mswLoader],
   parameters: {
+    // App Router project: makes the framework provide its built-in
+    // next/navigation mocks (getRouter() from navigation.mock).
+    nextjs: { appDirectory: true },
     msw: { handlers },
     a11y: { test: "error" },
   },
   decorators: [
+    withQueryClient,
     withI18n,
     withThemeByClassName({
       themes: { light: "", dark: "dark" },
