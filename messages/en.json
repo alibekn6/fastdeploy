@@ -1,5 +1,9 @@
 {
-  "Common": { "appName": "nextjs-frontend", "signIn": "Sign in", "signOut": "Sign out" },
+  "Common": {
+    "appName": "nextjs-frontend",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
   "Auth": {
     "title": "Sign in",
     "email": "Email",
@@ -18,7 +22,10 @@
     "passwordMismatch": "Passwords do not match",
     "emailTaken": "An account with this email already exists"
   },
-  "Dashboard": { "title": "Dashboard", "posts": "Posts" },
+  "Dashboard": {
+    "title": "Dashboard",
+    "posts": "Posts"
+  },
   "Consent": {
     "label": "Cookie consent",
     "message": "We use analytics to improve this app. Allow analytics cookies?",
@@ -43,6 +50,20 @@
     "notFoundBody": "There is no post with this id. The example data ships a single post.",
     "notFoundCta": "Open the example post",
     "metaDescription": "{title}: a streaming SSR example where the post renders immediately and comments stream in."
+  },
+  "WsExample": {
+    "eyebrow": "WebSocket example",
+    "title": "Live WebSocket updates",
+    "intro": "This page is driven by a reusable reconnecting hook: live messages stream in, the connection badge tracks drops and recovery, and an expired session triggers a transparent token refresh before reconnecting.",
+    "warning": "Heads up: WebSocket cookie authentication on the upgrade request is not covered by this repo's test suite (the mock cannot see cookies during the upgrade). Verify it end-to-end against your real backend before relying on it.",
+    "messagesTitle": "Live messages",
+    "empty": "Waiting for the first message…",
+    "statusConnecting": "Connecting",
+    "statusConnected": "Connected",
+    "statusReconnecting": "Reconnecting",
+    "statusDisconnected": "Disconnected",
+    "backHome": "Back to home",
+    "metaDescription": "A live WebSocket example with a reconnecting hook, visible connection state, and auth-expiry recovery."
   },
   "Error": {
     "title": "Something went wrong",

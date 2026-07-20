@@ -17,7 +17,10 @@
   --color-muted-foreground: hsl(240 3.8% 46.1%);
   --color-accent: hsl(240 4.8% 95.9%);
   --color-accent-foreground: hsl(240 5.9% 10%);
-  --color-destructive: hsl(0 84.2% 60.2%);
+  /* Darkened from hsl(0 84.2% 60.2%) (#ef4444, 3.76:1 on white — the spec's
+   * named "error text" contrast offender): 4.80:1 clears the 4.5:1 a11y gate
+   * both as error text on the background and behind white button labels. */
+  --color-destructive: hsl(0 72% 51%);
   --color-destructive-foreground: hsl(0 0% 98%);
   --color-border: hsl(240 5.9% 90%);
   --color-input: hsl(240 5.9% 90%);
