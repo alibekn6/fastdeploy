@@ -69,7 +69,7 @@ function localeRedirect(
   return redirect;
 }
 
-// Site-wide matcher; excludes `ingest` so the PostHog reverse-proxy rewrite
-// (next.config.ts) isn't locale-prefixed by the i18n middleware (which would
-// 404 the capture endpoints).
+// Site-wide matcher; excludes `ingest` so the PostHog reverse-proxy route
+// handler (app/ingest/[...path]/route.ts) isn't locale-prefixed by the i18n
+// middleware (which would 404 the capture endpoints).
 export const config = { matcher: "/((?!api|ingest|_next|_vercel|.*\\..*).*)" };
