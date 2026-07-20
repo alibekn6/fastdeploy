@@ -20,7 +20,7 @@
     "e2e": "playwright test",
     "storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws NEXT_PUBLIC_POSTHOG_KEY=phc_storybook NEXT_PUBLIC_API_MOCKING=enabled storybook dev -p 6006",
     "build-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws NEXT_PUBLIC_POSTHOG_KEY=phc_storybook storybook build",
-    "test-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws NEXT_PUBLIC_POSTHOG_KEY=phc_storybook vitest --project=storybook",
+    "test-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws NEXT_PUBLIC_POSTHOG_KEY=phc_storybook vitest run --project=storybook",
     "cz": "cz",
     "prepare": "husky"
   },
