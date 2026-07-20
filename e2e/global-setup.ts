@@ -21,7 +21,16 @@ function mintWarmupJwt(): string {
   })}.mock`;
 }
 
-const WARM_ROUTES = ["/", "/login", "/dashboard", "/ru/login", "/ru/dashboard"];
+const WARM_ROUTES = [
+  "/",
+  "/login",
+  "/signup",
+  "/dashboard",
+  "/examples/ssr/1",
+  "/examples/websocket",
+  "/ru/login",
+  "/ru/dashboard",
+];
 
 export default async function globalSetup(config: FullConfig) {
   const baseURL = config.projects[0]?.use?.baseURL;
