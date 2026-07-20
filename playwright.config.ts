@@ -17,15 +17,18 @@ export default defineConfig({
   use: { baseURL, trace: "on-first-retry" },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    // NEXT_PUBLIC_POSTHOG_KEY is blanked so analytics stays a no-op during e2e:
-    // a configured-but-unreachable PostHog host makes the /ingest reverse-proxy
-    // hammer a dead port until the dev server crashes mid-suite (libuv assert).
+    // NEXT_PUBLIC_POSTHOG_KEY is NOT blanked here any more. It used to be,
+    // because a configured-but-unreachable PostHog host made the `/ingest`
+    // rewrite hammer a dead port until the server crashed mid-suite (libuv
+    // assert) — a test-config workaround for a production availability bug.
+    // `/ingest` is now a route handler that contains upstream failures as 502s
+    // (see src/shared/analytics/ingest-proxy.ts), so the suite runs against the
+    // real analytics configuration and would regress if that containment broke.
     command: isCI
       ? "NEXT_PUBLIC_API_MOCKING=enabled pnpm build && NEXT_PUBLIC_API_MOCKING=enabled pnpm start"
       : "pnpm dev:mock",
     url: baseURL,
     timeout: 120_000,
     reuseExistingServer: !isCI,
-    env: { NEXT_PUBLIC_POSTHOG_KEY: "" },
   },
 });
