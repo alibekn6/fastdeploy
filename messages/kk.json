@@ -52,7 +52,7 @@
     "commentsCount": "{count, plural, one {# пікір} other {# пікір}}",
     "commentsLoading": "Пікірлер жүктелуде",
     "loading": "Пост жүктелуде",
-    "backHome": "Басты бетке",
+    "backToDashboard": "Басқару тақтасына оралу",
     "notFoundTitle": "Пост табылмады",
     "notFoundBody": "Мұндай идентификаторы бар пост жоқ — демонстрациялық деректерде бір ғана пост бар.",
     "notFoundCta": "Мысал постын ашу",
@@ -69,7 +69,7 @@
     "statusConnected": "Қосылды",
     "statusReconnecting": "Қайта қосылуда",
     "statusDisconnected": "Ажыратылды",
-    "backHome": "Басты бетке оралу",
+    "backToDashboard": "Басқару тақтасына оралу",
     "metaDescription": "WebSocket тікелей мысалы: қайта қосылатын хук, көрінетін қосылым күйі және сессия мерзімі өткеннен кейінгі қалпына келу."
   },
   "SseExample": {
@@ -85,7 +85,7 @@
     "statusClosed": "Жабық",
     "eventTypeNotice": "Хабарландыру",
     "eventTypeUpdate": "Жаңарту",
-    "backHome": "Басты бетке оралу",
+    "backToDashboard": "Басқару тақтасына оралу",
     "metaDescription": "Server-Sent Events тікелей мысалы: атаулы оқиғалар, автоматты қайта қосылу және көрінетін қосылым күйі."
   },
   "Error": {

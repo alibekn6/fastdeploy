@@ -52,7 +52,7 @@
     "commentsCount": "{count, plural, one {# комментарий} few {# комментария} many {# комментариев} other {# комментария}}",
     "commentsLoading": "Загрузка комментариев",
     "loading": "Загрузка поста",
-    "backHome": "На главную",
+    "backToDashboard": "Назад к панели управления",
     "notFoundTitle": "Пост не найден",
     "notFoundBody": "Поста с таким идентификатором нет — в демонстрационных данных есть только один пост.",
     "notFoundCta": "Открыть пример поста",
@@ -69,7 +69,7 @@
     "statusConnected": "Подключено",
     "statusReconnecting": "Переподключение",
     "statusDisconnected": "Отключено",
-    "backHome": "На главную",
+    "backToDashboard": "Назад к панели управления",
     "metaDescription": "Живой пример WebSocket: хук с переподключением, видимое состояние соединения и восстановление после истечения сессии."
   },
   "SseExample": {
@@ -85,7 +85,7 @@
     "statusClosed": "Закрыто",
     "eventTypeNotice": "Уведомление",
     "eventTypeUpdate": "Обновление",
-    "backHome": "На главную",
+    "backToDashboard": "Назад к панели управления",
     "metaDescription": "Живой пример Server-Sent Events: именованные события, автоматическое переподключение и видимое состояние соединения."
   },
   "Error": {

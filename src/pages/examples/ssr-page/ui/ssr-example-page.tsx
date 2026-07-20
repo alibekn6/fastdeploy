@@ -20,8 +20,8 @@ export async function SsrExamplePage({ id }: { id: string }) {
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-10 p-8">
       <nav className="text-sm">
-        <Link href={routes.home} className="text-muted-foreground hover:text-foreground">
-          &larr; {t("backHome")}
+        <Link href={routes.dashboard} className="text-muted-foreground hover:text-foreground">
+          &larr; {t("backToDashboard")}
         </Link>
       </nav>
       <article className="flex flex-col gap-3">

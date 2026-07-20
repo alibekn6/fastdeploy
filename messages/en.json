@@ -52,7 +52,7 @@
     "commentsCount": "{count, plural, one {# comment} other {# comments}}",
     "commentsLoading": "Loading comments",
     "loading": "Loading the post",
-    "backHome": "Back to home",
+    "backToDashboard": "Back to dashboard",
     "notFoundTitle": "Post not found",
     "notFoundBody": "There is no post with this id. The example data ships a single post.",
     "notFoundCta": "Open the example post",
@@ -69,7 +69,7 @@
     "statusConnected": "Connected",
     "statusReconnecting": "Reconnecting",
     "statusDisconnected": "Disconnected",
-    "backHome": "Back to home",
+    "backToDashboard": "Back to dashboard",
     "metaDescription": "A live WebSocket example with a reconnecting hook, visible connection state, and auth-expiry recovery."
   },
   "SseExample": {
@@ -85,7 +85,7 @@
     "statusClosed": "Closed",
     "eventTypeNotice": "Notice",
     "eventTypeUpdate": "Update",
-    "backHome": "Back to home",
+    "backToDashboard": "Back to dashboard",
     "metaDescription": "A live Server-Sent Events example: named events, automatic reconnection, and a visible connection state."
   },
   "Error": {

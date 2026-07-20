@@ -14,7 +14,7 @@ export function SsrExampleNotFound() {
           <Link href={routes.examplesSsr("1")}>{t("notFoundCta")}</Link>
         </Button>
         <Button asChild variant="ghost">
-          <Link href={routes.home}>{t("backHome")}</Link>
+          <Link href={routes.dashboard}>{t("backToDashboard")}</Link>
         </Button>
       </div>
     </main>
