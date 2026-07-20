@@ -1,5 +1,5 @@
 {
-  "Common": { "appName": "nextjs-frontend", "signOut": "Шығу" },
+  "Common": { "appName": "nextjs-frontend", "signIn": "Кіру", "signOut": "Шығу" },
   "Auth": {
     "title": "Кіру",
     "email": "Электрондық пошта",

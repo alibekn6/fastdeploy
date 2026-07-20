@@ -31,3 +31,14 @@ export function writeMockSessionCookies(tokens: {
     document.cookie = `${REFRESH_COOKIE}=${tokens.refresh_token}; ${attrs}; Max-Age=${maxAgeFrom(tokens.refresh_token, REFRESH_FALLBACK_SECONDS)}`;
   }
 }
+
+/**
+ * Mock mode ONLY: expire BOTH readable token cookies (sign-out). In production
+ * the backend's `auth/logout` deletes the httpOnly cookies and this is a no-op.
+ */
+export function clearMockSessionCookies(): void {
+  if (env.NEXT_PUBLIC_API_MOCKING !== "enabled") return;
+  const attrs = "Path=/; SameSite=Lax; Max-Age=0";
+  document.cookie = `${SESSION_COOKIE}=; ${attrs}`;
+  document.cookie = `${REFRESH_COOKIE}=; ${attrs}`;
+}

@@ -1,5 +1,5 @@
 {
-  "Common": { "appName": "nextjs-frontend", "signOut": "Выйти" },
+  "Common": { "appName": "nextjs-frontend", "signIn": "Войти", "signOut": "Выйти" },
   "Auth": {
     "title": "Вход",
     "email": "Электронная почта",
