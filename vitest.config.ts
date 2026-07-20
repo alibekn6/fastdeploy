@@ -21,7 +21,11 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "jsdom",
-          include: ["src/**/*.{test,spec}.{ts,tsx}"],
+          // `proxy.test.ts` sits at the root next to the middleware it tests.
+          include: ["src/**/*.{test,spec}.{ts,tsx}", "proxy.test.ts"],
+          // next-intl's middleware imports extensionless `next/server`, which
+          // Node ESM can't resolve — let Vite's resolver process the package.
+          server: { deps: { inline: ["next-intl"] } },
           exclude: ["src/**/*.integration.{test,spec}.ts"],
           setupFiles: ["./vitest.setup.ts"],
         },
