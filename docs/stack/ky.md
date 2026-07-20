@@ -81,12 +81,18 @@ The external backend sets **two** Secure `httpOnly` cookies — `access_token` (
 
 `createRefreshHook` is the ky `afterResponse` hook wired into `http`. On a **401 from a non-auth route** it:
 
-1. Issues a **single in-flight** `auth/refresh`. Concurrent 401s await the same module-scoped promise (reset in `finally`), so the backend sees exactly one refresh per expiry burst.
+1. Issues a **single in-flight** `auth/refresh` via `sharedRefresh()`. Concurrent 401s await the same module-scoped promise (reset in `finally`), so the backend sees exactly one refresh per expiry burst. That promise resolves `true`/`false` and never rejects, because **both** refresh mechanisms share it — this hook and `refreshSessionQuietly()` (below), which disagree about what a failure means.
 2. Retries the original request **once** via raw `fetch(request.clone())`. Raw fetch bypasses the hook, so a still-401 retry cannot recurse; the retried `Response` is returned to ky as final (`throwHttpErrors` runs after hooks, so callers parse the retried body).
 
 The four token-lifecycle routes (`auth/login`, `auth/register`, `auth/refresh`, `auth/logout`) are **excluded** so refresh can't recurse; `auth/me` is excluded too, because its 401 is a session probe ("signed out" is a valid state, not a failure).
 
-If the refresh itself fails (e.g. server-side revocation), the escape fires **inside the shared promise chain** — not per awaiting caller — so N concurrent 401s produce exactly **one** `auth/logout` and **one** redirect to the localized login page. That logout is load-bearing: a failed refresh can leave an unexpired `access_token` behind, which the guard would read as live and bounce `/login` → `/dashboard` forever. Only the backend can delete an httpOnly cookie, and `auth/logout` clears both unconditionally (it performs no auth check). Transparent refresh invalidates **no** query keys — the user is unchanged, so preserving the cache is correct.
+### The session probe's own refresh — `refreshSessionQuietly()`
+
+Excluding `auth/me` from the hook is correct, but on its own it means an expired `access_token` with a live `refresh_token` renders as **signed out**: nothing refreshes proactively, so any user idle past the access-token TTL saw a "Sign in" header while still fully authenticated. `fetchSession()` (`src/entities/session/api/session-queries.ts`) therefore disambiguates a 401 by calling `refreshSessionQuietly()` **once** and re-reading `auth/me` **once**, falling back to `anonymousSession` otherwise. Cookie values are never inspected (they're httpOnly in production) — it's attempt-once-then-give-up, so a genuinely anonymous visitor spends exactly one extra 401.
+
+That function **joins `sharedRefresh()`** rather than issuing its own `auth/refresh`: the same stale access token 401s the session probe and every data query in one burst, and two concurrent refreshes would, under refresh-token rotation, hand the loser a false 401 — escalating to a spurious logout + redirect for a live session. It takes **no** part in the escape: it resolves `false` and never redirects or logs out, which is what keeps an anonymous visitor on a public page from being bounced to `/login`.
+
+If the refresh itself fails (e.g. server-side revocation), the escape fires **once per shared promise** — guarded on the promise's identity, not per awaiting caller — so N concurrent 401s produce exactly **one** `auth/logout` and **one** redirect to the localized login page. That logout is load-bearing: a failed refresh can leave an unexpired `access_token` behind, which the guard would read as live and bounce `/login` → `/dashboard` forever. Only the backend can delete an httpOnly cookie, and `auth/logout` clears both unconditionally (it performs no auth check). Transparent refresh invalidates **no** query keys — the user is unchanged, so preserving the cache is correct.
 
 ### MSW compatibility
 

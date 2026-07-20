@@ -122,10 +122,13 @@ describe("SignUpForm (state matrix)", () => {
 
     await waitFor(() => expect(push).toHaveBeenCalledTimes(1));
     expect(push.mock.calls[0]?.[0]).toBe("/dashboard");
-    // A3: the register → me call SEQUENCE, ordered, at the MSW boundary.
+    // A3: the register → me call SEQUENCE, ordered, at the MSW boundary. No
+    // cookie jar in jsdom, so the `me` probe 401s and spends its ONE quiet
+    // `auth/refresh` disambiguation before settling on `anonymousSession`.
     expect(requestedPaths.filter((p) => p.startsWith("/auth/"))).toEqual([
       "/auth/register",
       "/auth/me",
+      "/auth/refresh",
     ]);
   });
 

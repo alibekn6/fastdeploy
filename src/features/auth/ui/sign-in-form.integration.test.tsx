@@ -126,9 +126,13 @@ describe("SignInForm (state matrix)", () => {
 
     await waitFor(() => expect(push).toHaveBeenCalledTimes(1));
     expect(push.mock.calls[0]?.[0]).toBe("/dashboard");
+    // No cookie jar in jsdom, so the `me` probe 401s and spends its ONE quiet
+    // `auth/refresh` disambiguation (stale-access vs. anonymous) before settling
+    // on `anonymousSession`. Bounded: never a second refresh, never a redirect.
     expect(requestedPaths.filter((p) => p.startsWith("/auth/"))).toEqual([
       "/auth/login",
       "/auth/me",
+      "/auth/refresh",
     ]);
   });
 
