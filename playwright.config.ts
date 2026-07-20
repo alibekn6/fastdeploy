@@ -33,8 +33,11 @@ export default defineConfig({
     // `/ingest` is now a route handler that contains upstream failures as 502s
     // (see src/shared/analytics/ingest-proxy.ts), so the suite runs against the
     // real analytics configuration and would regress if that containment broke.
+    // WS_URL is set here, not just in CI's job env: it is a required variable
+    // and CI has no `.env`, so the webServer's own `next build` would fail env
+    // validation. Keeping it here makes the suite runnable from a bare checkout.
     command: isCI
-      ? "NEXT_PUBLIC_API_MOCKING=enabled pnpm build && NEXT_PUBLIC_API_MOCKING=enabled pnpm start"
+      ? "NEXT_PUBLIC_API_MOCKING=enabled NEXT_PUBLIC_WS_URL=wss://api.example.com/ws pnpm build && NEXT_PUBLIC_API_MOCKING=enabled NEXT_PUBLIC_WS_URL=wss://api.example.com/ws pnpm start"
       : "pnpm dev:mock",
     url: baseURL,
     timeout: 120_000,
