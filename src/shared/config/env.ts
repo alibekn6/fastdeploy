@@ -36,19 +36,24 @@ export const secureWsUrl = z
   .refine(
     (value) => {
       const url = parsedUrl(value);
-      return url !== null && (url.protocol === "wss:" || isLocalhost(url.hostname));
+      if (url === null) return false;
+      // The scheme must be a WebSocket one either way; localhost only relaxes TLS.
+      if (url.protocol !== "ws:" && url.protocol !== "wss:") return false;
+      return url.protocol === "wss:" || isLocalhost(url.hostname);
     },
-    { message: "NEXT_PUBLIC_WS_URL must use wss:// unless the host is localhost" },
+    {
+      message: "NEXT_PUBLIC_WS_URL must be a ws(s):// URL, and wss:// unless the host is localhost",
+    },
   );
 
 export const env = createEnv({
   server: { NODE_ENV: z.enum(["development", "production", "test"]).default("development") },
   client: {
     NEXT_PUBLIC_API_URL: secureApiUrl,
-    // Defaulted (like NEXT_PUBLIC_SITE_URL) so envs that only set the API URL —
-    // the Storybook scripts, SKIP_ENV_VALIDATION-less builds — keep working;
-    // the wss:// default can never weaken the transport rule above.
-    NEXT_PUBLIC_WS_URL: secureWsUrl.default("wss://api.example.com/ws"),
+    // Required, NOT defaulted: a deploy that forgets this must fail loudly rather
+    // than silently connect to an example domain. The Storybook scripts set it
+    // explicitly, and SKIP_ENV_VALIDATION covers env-less builds.
+    NEXT_PUBLIC_WS_URL: secureWsUrl,
     NEXT_PUBLIC_API_MOCKING: z.enum(["enabled", "disabled"]).default("disabled"),
     NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),

@@ -17,9 +17,9 @@
     "test:integration": "vitest run --project integration",
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
-    "storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_API_MOCKING=enabled storybook dev -p 6006",
-    "build-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com storybook build",
-    "test-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com vitest --project=storybook",
+    "storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws NEXT_PUBLIC_API_MOCKING=enabled storybook dev -p 6006",
+    "build-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws storybook build",
+    "test-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws vitest --project=storybook",
     "cz": "cz",
     "prepare": "husky"
   },

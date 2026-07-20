@@ -17,6 +17,9 @@ describe("secureWsUrl (NEXT_PUBLIC_WS_URL refine)", () => {
     "ws://api.example.com/ws",
     "ws://ws.example.com:8080/live",
     "http://api.example.com/ws",
+    // Localhost relaxes TLS, never the scheme itself.
+    "https://localhost/ws",
+    "http://localhost:3000/ws",
     "not-a-url",
   ])("rejects %s", (url) => {
     expect(secureWsUrl.safeParse(url).success).toBe(false);
