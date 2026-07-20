@@ -32,6 +32,9 @@ const INVENTORY = [
   "src/pages/examples/ssr-page/ui/comments-list.stories.tsx",
   "src/pages/examples/websocket-page/ui/connection-status.stories.tsx",
   "src/pages/examples/websocket-page/ui/message-list.stories.tsx",
+  "src/pages/examples/sse-example/ui/connection-status.stories.tsx",
+  "src/pages/examples/sse-example/ui/message-list.stories.tsx",
+  "src/pages/dashboard/ui/examples-nav.stories.tsx",
 ];
 
 const missing = INVENTORY.filter((relativePath) => {

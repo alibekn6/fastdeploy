@@ -7,7 +7,7 @@
  */
 
 /** Public paths that never require authentication (prefix-matched). */
-const PUBLIC_PATHS = ["/", "/examples/ssr", "/examples/websocket"];
+const PUBLIC_PATHS = ["/", "/examples/ssr", "/examples/websocket", "/examples/sse"];
 
 /** Auth pages a user with a LIVE access token is bounced away from. */
 const AUTH_PATHS = ["/login", "/signup"];

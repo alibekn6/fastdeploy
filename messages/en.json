@@ -24,7 +24,14 @@
   },
   "Dashboard": {
     "title": "Dashboard",
-    "posts": "Posts"
+    "posts": "Posts",
+    "examplesHeading": "Try the examples",
+    "ssrExampleTitle": "Streaming SSR",
+    "ssrExampleDescription": "The post renders immediately while comments stream in through a nested Suspense boundary.",
+    "wsExampleTitle": "WebSocket",
+    "wsExampleDescription": "A reconnecting WebSocket hook with live messages and a visible connection state.",
+    "sseExampleTitle": "Server-Sent Events",
+    "sseExampleDescription": "A live event stream over ordinary HTTP — cookies and the proxy just work."
   },
   "Consent": {
     "label": "Cookie consent",
@@ -64,6 +71,22 @@
     "statusDisconnected": "Disconnected",
     "backHome": "Back to home",
     "metaDescription": "A live WebSocket example with a reconnecting hook, visible connection state, and auth-expiry recovery."
+  },
+  "SseExample": {
+    "eyebrow": "Server-Sent Events example",
+    "title": "Live SSE updates",
+    "intro": "This page is driven by an EventSource hook: named events stream in over a real Next.js route handler, and the connection badge tracks the browser's own reconnect attempts.",
+    "note": "Unlike the WebSocket example, SSE is ordinary HTTP: this stream rides the app's own origin, the same httpOnly auth cookies, and the same proxy as every other page — and the browser reconnects it automatically, so there is no manual backoff to reason about.",
+    "messagesTitle": "Live events",
+    "empty": "Waiting for the first event…",
+    "statusConnecting": "Connecting",
+    "statusOpen": "Open",
+    "statusReconnecting": "Reconnecting",
+    "statusClosed": "Closed",
+    "eventTypeNotice": "Notice",
+    "eventTypeUpdate": "Update",
+    "backHome": "Back to home",
+    "metaDescription": "A live Server-Sent Events example: named events, automatic reconnection, and a visible connection state."
   },
   "Error": {
     "title": "Something went wrong",

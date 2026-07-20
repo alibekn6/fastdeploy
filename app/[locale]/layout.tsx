@@ -50,6 +50,7 @@ export default async function LocaleLayout({
     Error: messages.Error,
     SsrExample: messages.SsrExample,
     WsExample: messages.WsExample,
+    SseExample: messages.SseExample,
   };
   return (
     <html lang={locale} suppressHydrationWarning>

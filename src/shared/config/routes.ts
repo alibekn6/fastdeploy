@@ -4,4 +4,5 @@ export const routes = {
   dashboard: "/dashboard",
   examplesSsr: (id: string) => `/examples/ssr/${id}`,
   examplesWebsocket: "/examples/websocket",
+  examplesSse: "/examples/sse",
 } as const;

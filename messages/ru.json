@@ -24,7 +24,14 @@
   },
   "Dashboard": {
     "title": "Панель управления",
-    "posts": "Публикации"
+    "posts": "Публикации",
+    "examplesHeading": "Попробуйте примеры",
+    "ssrExampleTitle": "Потоковый SSR",
+    "ssrExampleDescription": "Пост отображается сразу, а комментарии приходят через вложенную границу Suspense.",
+    "wsExampleTitle": "WebSocket",
+    "wsExampleDescription": "Хук WebSocket с переподключением: живые сообщения и видимое состояние соединения.",
+    "sseExampleTitle": "Server-Sent Events",
+    "sseExampleDescription": "Живой поток событий по обычному HTTP — cookie и прокси работают как обычно."
   },
   "Consent": {
     "label": "Согласие на использование cookie",
@@ -64,6 +71,22 @@
     "statusDisconnected": "Отключено",
     "backHome": "На главную",
     "metaDescription": "Живой пример WebSocket: хук с переподключением, видимое состояние соединения и восстановление после истечения сессии."
+  },
+  "SseExample": {
+    "eyebrow": "Пример Server-Sent Events",
+    "title": "Живые обновления по SSE",
+    "intro": "Страницей управляет хук на основе EventSource: именованные события приходят через настоящий route-обработчик Next.js, а индикатор соединения отражает собственные попытки браузера переподключиться.",
+    "note": "В отличие от примера с WebSocket, SSE — это обычный HTTP: поток идёт через тот же источник (origin) приложения, те же httpOnly cookie аутентификации и тот же прокси, что и любая другая страница, а браузер переподключает его автоматически — вручную реализовывать backoff не нужно.",
+    "messagesTitle": "Живые события",
+    "empty": "Ожидаем первое событие…",
+    "statusConnecting": "Подключение",
+    "statusOpen": "Открыто",
+    "statusReconnecting": "Переподключение",
+    "statusClosed": "Закрыто",
+    "eventTypeNotice": "Уведомление",
+    "eventTypeUpdate": "Обновление",
+    "backHome": "На главную",
+    "metaDescription": "Живой пример Server-Sent Events: именованные события, автоматическое переподключение и видимое состояние соединения."
   },
   "Error": {
     "title": "Что-то пошло не так",

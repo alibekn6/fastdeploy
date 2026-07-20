@@ -24,7 +24,14 @@
   },
   "Dashboard": {
     "title": "Басқару тақтасы",
-    "posts": "Жазбалар"
+    "posts": "Жазбалар",
+    "examplesHeading": "Мысалдарды көріп шығыңыз",
+    "ssrExampleTitle": "Ағынды SSR",
+    "ssrExampleDescription": "Жазба бірден көрсетіледі, ал пікірлер кірістірілген Suspense шекарасы арқылы ағыммен келеді.",
+    "wsExampleTitle": "WebSocket",
+    "wsExampleDescription": "Қайта қосылатын WebSocket хугы: тікелей хабарламалар және көрінетін қосылым күйі.",
+    "sseExampleTitle": "Server-Sent Events",
+    "sseExampleDescription": "Қарапайым HTTP арқылы тікелей оқиғалар ағыны — cookie мен прокси әдеттегідей жұмыс істейді."
   },
   "Consent": {
     "label": "Cookie келісімі",
@@ -64,6 +71,22 @@
     "statusDisconnected": "Ажыратылды",
     "backHome": "Басты бетке оралу",
     "metaDescription": "WebSocket тікелей мысалы: қайта қосылатын хук, көрінетін қосылым күйі және сессия мерзімі өткеннен кейінгі қалпына келу."
+  },
+  "SseExample": {
+    "eyebrow": "Server-Sent Events мысалы",
+    "title": "SSE арқылы тікелей жаңартулар",
+    "intro": "Бетті EventSource негізіндегі хук басқарады: атаулы оқиғалар нақты Next.js route өңдеушісі арқылы келеді, ал қосылым индикаторы браузердің өз қайта қосылу әрекеттерін көрсетеді.",
+    "note": "WebSocket мысалынан айырмашылығы, SSE — қарапайым HTTP: ағын қолданбаның өз түпнұсқасы (origin), аутентификацияның сол httpOnly cookie-лері және кез келген басқа бет сияқты сол прокси арқылы жүреді, ал браузер оны автоматты түрде қайта қосады — backoff-ты қолмен іске асырудың қажеті жоқ.",
+    "messagesTitle": "Тікелей оқиғалар",
+    "empty": "Алғашқы оқиғаны күтудеміз…",
+    "statusConnecting": "Қосылуда",
+    "statusOpen": "Ашық",
+    "statusReconnecting": "Қайта қосылуда",
+    "statusClosed": "Жабық",
+    "eventTypeNotice": "Хабарландыру",
+    "eventTypeUpdate": "Жаңарту",
+    "backHome": "Басты бетке оралу",
+    "metaDescription": "Server-Sent Events тікелей мысалы: атаулы оқиғалар, автоматты қайта қосылу және көрінетін қосылым күйі."
   },
   "Error": {
     "title": "Бірдеңе дұрыс болмады",

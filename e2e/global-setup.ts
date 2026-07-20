@@ -28,6 +28,8 @@ const WARM_ROUTES = [
   "/dashboard",
   "/examples/ssr/1",
   "/examples/websocket",
+  "/examples/sse",
+  "/api/sse",
   "/ru/login",
   "/ru/dashboard",
 ];
@@ -40,7 +42,11 @@ export default async function globalSetup(config: FullConfig) {
   for (const route of WARM_ROUTES) {
     while (Date.now() < deadline) {
       try {
-        await fetch(new URL(route, baseURL), { headers: { cookie } });
+        const response = await fetch(new URL(route, baseURL), { headers: { cookie } });
+        // `/api/sse` streams indefinitely — cancel the (unread) body so the
+        // warmup request doesn't hold that connection (and its interval) open
+        // for the life of the dev server. A no-op for ordinary page responses.
+        await response.body?.cancel();
         break;
       } catch {
         // Server not accepting connections yet — retry until the deadline.
