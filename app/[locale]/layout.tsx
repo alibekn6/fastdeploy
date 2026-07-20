@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import { MswProvider, QueryProvider } from "@/app/providers";
 import { ConsentBanner, PageViewTracker, PostHogProvider } from "@/shared/analytics";
 import { SITE_URL } from "@/shared/config/seo";
@@ -39,10 +39,22 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
+  // Only the namespaces client components actually read are serialized into the
+  // RSC payload; server-only ones (Dashboard, Home, Metadata) stay on the server.
+  // Adding a `useTranslations("X")` to a client component means adding X here.
+  const messages = await getMessages();
+  const clientMessages = {
+    Common: messages.Common,
+    Auth: messages.Auth,
+    Consent: messages.Consent,
+    Error: messages.Error,
+    SsrExample: messages.SsrExample,
+    WsExample: messages.WsExample,
+  };
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className="bg-background text-foreground">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={clientMessages}>
           <PostHogProvider>
             <MswProvider>
               <QueryProvider>{children}</QueryProvider>
