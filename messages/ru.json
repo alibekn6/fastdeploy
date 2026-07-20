@@ -9,7 +9,14 @@
     "passwordRequired": "Введите пароль",
     "invalidCredentials": "Неверная электронная почта или пароль",
     "tooManyAttempts": "Слишком много попыток. Повторите попытку позже.",
-    "serverError": "Что-то пошло не так. Повторите попытку."
+    "serverError": "Что-то пошло не так. Повторите попытку.",
+    "signUpTitle": "Создание учётной записи",
+    "confirmPassword": "Подтвердите пароль",
+    "signUpSubmit": "Создать учётную запись",
+    "passwordTooShort": "Пароль должен содержать не менее 12 символов",
+    "passwordTooLong": "Пароль должен содержать не более 128 символов",
+    "passwordMismatch": "Пароли не совпадают",
+    "emailTaken": "Учётная запись с этой электронной почтой уже существует"
   },
   "Dashboard": { "title": "Панель управления", "posts": "Публикации" },
   "Consent": {
@@ -47,6 +54,8 @@
     "homeDescription": "Шаблон фронтенда на Next.js 16 с архитектурой FSD.",
     "loginTitle": "Вход",
     "loginDescription": "Войдите в свою учётную запись.",
+    "signupTitle": "Создание учётной записи",
+    "signupDescription": "Создайте учётную запись.",
     "dashboardTitle": "Панель управления",
     "dashboardDescription": "Ваша панель управления."
   }

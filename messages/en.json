@@ -9,7 +9,14 @@
     "passwordRequired": "Enter your password",
     "invalidCredentials": "Invalid email or password",
     "tooManyAttempts": "Too many attempts. Please try again later.",
-    "serverError": "Something went wrong. Please try again."
+    "serverError": "Something went wrong. Please try again.",
+    "signUpTitle": "Create an account",
+    "confirmPassword": "Confirm password",
+    "signUpSubmit": "Create account",
+    "passwordTooShort": "Password must be at least 12 characters",
+    "passwordTooLong": "Password must be at most 128 characters",
+    "passwordMismatch": "Passwords do not match",
+    "emailTaken": "An account with this email already exists"
   },
   "Dashboard": { "title": "Dashboard", "posts": "Posts" },
   "Consent": {
@@ -47,6 +54,8 @@
     "homeDescription": "A Next.js 16 FSD frontend boilerplate.",
     "loginTitle": "Sign in",
     "loginDescription": "Sign in to your account.",
+    "signupTitle": "Create an account",
+    "signupDescription": "Create your account.",
     "dashboardTitle": "Dashboard",
     "dashboardDescription": "Your dashboard."
   }
