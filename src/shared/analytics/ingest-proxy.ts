@@ -56,6 +56,25 @@ function upstreamHeaders(response: Response): Headers {
 }
 
 /**
+ * A failure response still has to be a valid, parseable payload of whatever
+ * shape the requester expected: posthog-js loads `.../config.js` as a
+ * `<script>` (a remote-config bootstrap) and every other `/ingest/**` path as
+ * JSON (`.../config`, `/flags/`, `/e/`, …). An empty body satisfies neither —
+ * a `<script>` with no content is inert, but JSON consumers call
+ * `JSON.parse("")`, which throws `Unexpected end of JSON input`. Degrading to
+ * an empty-but-well-typed body keeps that throw from ever happening.
+ */
+function degradedResponse(status: 502 | 503, path: string[]): Response {
+  if (path.at(-1)?.endsWith(".js")) {
+    return new Response("", {
+      status,
+      headers: { "content-type": "application/javascript; charset=utf-8" },
+    });
+  }
+  return new Response("{}", { status, headers: { "content-type": "application/json" } });
+}
+
+/**
  * Proxy one `/ingest/**` request to `host`, never throwing.
  *
  * - No `host` configured → 503. Nothing to proxy to; the client stops trying.
@@ -68,7 +87,7 @@ export async function proxyToAnalytics(
   path: string[],
   host: string | undefined,
 ): Promise<Response> {
-  if (!host) return new Response(null, { status: 503 });
+  if (!host) return degradedResponse(503, path);
 
   const incoming = new URL(request.url);
   // `${host}` may carry a base path, so join rather than replace. The trailing
@@ -100,6 +119,6 @@ export async function proxyToAnalytics(
         error instanceof Error ? error.message : String(error)
       }`,
     );
-    return new Response(null, { status: 502 });
+    return degradedResponse(502, path);
   }
 }

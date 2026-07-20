@@ -51,6 +51,39 @@ describe("proxyToAnalytics", () => {
     warn.mockRestore();
   });
 
+  it("returns a parseable JSON body on 502 for a JSON endpoint (config, flags, capture, ...)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    // The bug: an empty body degrades gracefully for posthog-js's status-gated
+    // JSON parsing, but any caller that parses unconditionally hits
+    // `JSON.parse("")` -> `Unexpected end of JSON input`.
+    const response = await proxyToAnalytics(
+      request("http://app.test/ingest/flags/?v=2", { method: "POST", body: "{}" }),
+      ["flags"],
+      DEAD_HOST,
+    );
+
+    expect(response.status).toBe(502);
+    expect(response.headers.get("content-type")).toContain("application/json");
+    await expect(response.json()).resolves.toEqual({});
+    warn.mockRestore();
+  });
+
+  it("returns a script-safe body on 502 for the config.js remote-config bootstrap", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const response = await proxyToAnalytics(
+      request("http://app.test/ingest/array/phc_test/config.js"),
+      ["array", "phc_test", "config.js"],
+      DEAD_HOST,
+    );
+
+    expect(response.status).toBe(502);
+    expect(response.headers.get("content-type")).toContain("application/javascript");
+    expect(await response.text()).toBe("");
+    warn.mockRestore();
+  });
+
   it("survives sustained traffic against a dead host without ever throwing", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -76,5 +109,19 @@ describe("proxyToAnalytics", () => {
     );
 
     expect(response.status).toBe(503);
+    expect(response.headers.get("content-type")).toContain("application/json");
+    await expect(response.json()).resolves.toEqual({});
+  });
+
+  it("returns a script-safe body on 503 for config.js when analytics is unconfigured", async () => {
+    const response = await proxyToAnalytics(
+      request("http://app.test/ingest/array/phc_test/config.js"),
+      ["array", "phc_test", "config.js"],
+      undefined,
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.headers.get("content-type")).toContain("application/javascript");
+    expect(await response.text()).toBe("");
   });
 });
