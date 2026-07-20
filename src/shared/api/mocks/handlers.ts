@@ -3,9 +3,10 @@ import { REFRESH_COOKIE, SESSION_COOKIE } from "@/shared/config/auth";
 import { env } from "@/shared/config/env";
 import { decodeJwtPayload } from "@/shared/lib/route-guard";
 import { commentsFixture, postsFixture } from "./fixtures";
-import { getCommentsFailure, setCommentsFailure } from "./mock-control";
+import { commentsFailureFor } from "./mock-control";
 
-const api = (path: string) => new URL(path, env.NEXT_PUBLIC_API_URL).toString();
+/** Build a handler URL exactly like ky resolves it, so the two always match. */
+export const api = (path: string) => new URL(path, env.NEXT_PUBLIC_API_URL).toString();
 
 const base64url = (value: object) =>
   btoa(JSON.stringify(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -65,21 +66,15 @@ export const handlers = [
   }),
   // Non-auth endpoint: flat Comment[] body, bare HTTP status errors, no
   // envelope. Serves the pinned fixture VERBATIM behind a 2 s delay so the
-  // nested Suspense boundary demonstrably streams. Stateless/reentrant apart
-  // from the documented mock-control failure injection.
-  http.get(api("/posts/:id/comments"), async ({ params }) => {
-    const failure = getCommentsFailure();
+  // nested Suspense boundary demonstrably streams. Fully stateless/reentrant:
+  // the failure injection is read PER REQUEST (see mock-control.ts), so
+  // parallel e2e workers cannot affect each other.
+  http.get(api("/posts/:id/comments"), async ({ params, request }) => {
+    const failure = commentsFailureFor(request);
     if (failure !== null) return new HttpResponse(null, { status: failure });
     if (params.id !== "1") return new HttpResponse(null, { status: 404 });
     await delay(2000);
     return HttpResponse.json(commentsFixture);
-  }),
-  // Test-only control endpoint (see mock-control.ts) — exists only in mock mode
-  // because the handlers array itself is only registered there.
-  http.post(api("/__mock/comments-failure"), async ({ request }) => {
-    const { status } = (await request.json()) as { status: number | null };
-    setCommentsFailure(status ?? null);
-    return HttpResponse.json({ ok: true });
   }),
   http.post(api("/auth/login"), async ({ request }) => {
     const { email } = (await request.json()) as { email: string };

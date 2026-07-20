@@ -2,20 +2,16 @@ import { HTTPError } from "ky";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { getValidated } from "@/shared/api/fetcher";
-import { http } from "@/shared/api/http";
 import { commentsFixture, postsFixture } from "@/shared/api/mocks/fixtures";
 import { handlers } from "@/shared/api/mocks/handlers";
-import { setCommentsFailure } from "@/shared/api/mocks/mock-control";
+import { COMMENTS_FAILURE_HEADER } from "@/shared/api/mocks/mock-control";
 import { CommentsSchema, PostSchema } from "./post-queries";
 
 // The real shared handlers array — the same one both runtimes register — so
 // these tests prove the ky client and the MSW URL patterns actually match.
 const server = setupServer(...handlers);
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
-afterEach(() => {
-  server.resetHandlers();
-  setCommentsFailure(null);
-});
+afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe("GET posts/:id", () => {
@@ -41,16 +37,28 @@ describe("GET posts/:id/comments", () => {
   });
 });
 
-describe("mock-control override seam (e2e failure injection)", () => {
-  it("fails comments with the injected status until the override is lifted", async () => {
-    await http.post("__mock/comments-failure", { json: { status: 500 } });
-    const failing = getValidated("posts/1/comments", CommentsSchema, { retry: 0 });
+describe("comments failure injection (per-request, e2e seam)", () => {
+  it("fails only the request carrying the failure header", async () => {
+    const failing = getValidated("posts/1/comments", CommentsSchema, {
+      retry: 0,
+      headers: { [COMMENTS_FAILURE_HEADER]: "500" },
+    });
     await expect(failing).rejects.toBeInstanceOf(HTTPError);
     await failing.catch((error: HTTPError) => expect(error.response.status).toBe(500));
 
-    await http.post("__mock/comments-failure", { json: { status: null } });
     await expect(getValidated("posts/1/comments", CommentsSchema)).resolves.toEqual(
       commentsFixture,
     );
+  });
+
+  it("leaves a CONCURRENT request without the header untouched (no shared process state)", async () => {
+    const failing = getValidated("posts/1/comments", CommentsSchema, {
+      retry: 0,
+      headers: { [COMMENTS_FAILURE_HEADER]: "503" },
+    }).catch((error: HTTPError) => error.response.status);
+    const healthy = getValidated("posts/1/comments", CommentsSchema);
+
+    expect(await failing).toBe(503);
+    expect(await healthy).toEqual(commentsFixture);
   });
 });

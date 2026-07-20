@@ -147,6 +147,78 @@ describe("createRefreshHook", () => {
     expect(fetchMock.mock.calls.some(([input]) => input instanceof Request)).toBe(false);
   });
 
+  it("hands the refreshed mock_tokens to onTokens, then still returns the retried response", async () => {
+    const retried = new Response("[]", { status: 200 });
+    fetchMock.mockImplementation(async (input) =>
+      urlOf(input).includes("/auth/refresh")
+        ? Response.json({ data: { message: "Refreshed", mock_tokens: { access_token: "at-2" } } })
+        : retried,
+    );
+
+    const onTokens = vi.fn();
+    const hook = createRefreshHook(vi.fn(), onTokens);
+    await expect(hook(state(`${API}/posts`, 401))).resolves.toBe(retried);
+
+    expect(onTokens).toHaveBeenCalledExactlyOnceWith({ access_token: "at-2" });
+  });
+
+  it("does not call onTokens when the refresh body carries no mock_tokens (production shape)", async () => {
+    fetchMock.mockImplementation(async (input) =>
+      urlOf(input).includes("/auth/refresh")
+        ? Response.json({ data: { message: "Refreshed" } })
+        : new Response("[]", { status: 200 }),
+    );
+
+    const onTokens = vi.fn();
+    const hook = createRefreshHook(vi.fn(), onTokens);
+    await hook(state(`${API}/posts`, 401));
+
+    expect(onTokens).not.toHaveBeenCalled();
+  });
+
+  it("still refreshes and retries when no onTokens callback is wired", async () => {
+    const retried = new Response("[]", { status: 200 });
+    fetchMock.mockImplementation(async (input) =>
+      urlOf(input).includes("/auth/refresh")
+        ? Response.json({ data: { mock_tokens: { access_token: "at-2" } } })
+        : retried,
+    );
+
+    const hook = createRefreshHook(vi.fn());
+    await expect(hook(state(`${API}/posts`, 401))).resolves.toBe(retried);
+    expect(callsTo("/auth/refresh")).toHaveLength(1);
+  });
+
+  it("survives an unreadable refresh body without failing the retry", async () => {
+    const retried = new Response("[]", { status: 200 });
+    fetchMock.mockImplementation(async (input) =>
+      urlOf(input).includes("/auth/refresh") ? new Response("not json", { status: 200 }) : retried,
+    );
+
+    const onTokens = vi.fn();
+    const hook = createRefreshHook(vi.fn(), onTokens);
+    await expect(hook(state(`${API}/posts`, 401))).resolves.toBe(retried);
+    expect(onTokens).not.toHaveBeenCalled();
+  });
+
+  it("a throwing onTokens sink cannot turn a SUCCESSFUL refresh into a logout + redirect", async () => {
+    const retried = new Response("[]", { status: 200 });
+    fetchMock.mockImplementation(async (input) =>
+      urlOf(input).includes("/auth/refresh")
+        ? Response.json({ data: { mock_tokens: { access_token: "at-2" } } })
+        : retried,
+    );
+
+    const onAuthFailure = vi.fn();
+    const hook = createRefreshHook(onAuthFailure, () => {
+      throw new Error("sink blew up");
+    });
+
+    await expect(hook(state(`${API}/posts`, 401))).resolves.toBe(retried);
+    expect(onAuthFailure).not.toHaveBeenCalled();
+    expect(callsTo("/auth/logout")).toHaveLength(0);
+  });
+
   it("swallows a transport-level logout failure and still reports auth failure", async () => {
     fetchMock.mockImplementation(async (input) => {
       if (urlOf(input).includes("/auth/refresh")) return new Response(null, { status: 401 });
