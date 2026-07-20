@@ -26,7 +26,7 @@ export default defineConfig({
           // next-intl's middleware imports extensionless `next/server`, which
           // Node ESM can't resolve — let Vite's resolver process the package.
           server: { deps: { inline: ["next-intl"] } },
-          exclude: ["src/**/*.integration.{test,spec}.ts"],
+          exclude: ["src/**/*.integration.{test,spec}.{ts,tsx}"],
           setupFiles: ["./vitest.setup.ts"],
         },
       },
@@ -35,7 +35,12 @@ export default defineConfig({
         test: {
           name: "integration",
           environment: "node",
-          include: ["src/**/*.integration.{test,spec}.ts"],
+          // `.tsx` so UI slices can be exercised at the MSW network boundary
+          // (per-file `@vitest-environment jsdom` docblocks own the DOM).
+          include: ["src/**/*.integration.{test,spec}.{ts,tsx}"],
+          // Same reason as the unit project: next-intl imports extensionless
+          // `next/navigation`, which Node ESM can't resolve.
+          server: { deps: { inline: ["next-intl"] } },
           hookTimeout: 120_000,
           testTimeout: 60_000,
           pool: "forks",

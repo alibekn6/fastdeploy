@@ -1,1 +1,1 @@
-export { checkRouteAccess, hasSession } from "./route-guard";
+export { checkRouteAccess, decodeJwtPayload, hasSession } from "./route-guard";

@@ -17,17 +17,12 @@ const CLOCK_SKEW_MS = 30_000;
 
 type RouteDecision = "allow" | "login" | "dashboard";
 
-interface AccessClaims {
-  exp?: unknown;
-  iat?: unknown;
-}
-
 function matches(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 /** Decode a JWT payload without verifying it. Null on anything undecodable. */
-function decodeJwtPayload(token: string): AccessClaims | null {
+export function decodeJwtPayload(token: string): Record<string, unknown> | null {
   const part = token.split(".")[1];
   if (!part) return null;
   try {
@@ -35,7 +30,7 @@ function decodeJwtPayload(token: string): AccessClaims | null {
     const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
     const parsed: unknown = JSON.parse(atob(padded));
     if (typeof parsed !== "object" || parsed === null) return null;
-    return parsed as AccessClaims;
+    return parsed as Record<string, unknown>;
   } catch {
     return null;
   }

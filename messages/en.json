@@ -1,6 +1,16 @@
 {
   "Common": { "appName": "nextjs-frontend", "signOut": "Sign out" },
-  "Auth": { "title": "Sign in", "email": "Email", "password": "Password", "submit": "Sign in" },
+  "Auth": {
+    "title": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "emailInvalid": "Enter a valid email address",
+    "passwordRequired": "Enter your password",
+    "invalidCredentials": "Invalid email or password",
+    "tooManyAttempts": "Too many attempts. Please try again later.",
+    "serverError": "Something went wrong. Please try again."
+  },
   "Dashboard": { "title": "Dashboard", "posts": "Posts" },
   "Consent": {
     "label": "Cookie consent",

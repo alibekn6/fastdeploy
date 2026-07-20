@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { REFRESH_COOKIE, SESSION_COOKIE } from "@/shared/config/auth";
 
-const BASE = "http://localhost:3000";
+const BASE = `http://localhost:${process.env.PORT ?? 3000}`;
 
 // Mirrors the MSW mint helper's pinned unsigned-JWT format (handlers.ts) so
 // the specs can plant decodable cookies without importing the app's env stack.

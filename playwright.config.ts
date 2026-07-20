@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3000;
+// Overridable so parallel checkouts/agents don't collide on one port —
+// `next dev`/`next start` honor the same PORT variable for the webServer.
+const PORT = Number(process.env.PORT ?? 3000);
 const baseURL = `http://localhost:${PORT}`;
 const isCI = !!process.env.CI;
 
