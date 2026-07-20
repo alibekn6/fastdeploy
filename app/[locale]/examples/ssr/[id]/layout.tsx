@@ -1,4 +1,7 @@
+import { hasLocale } from "next-intl";
+import { setRequestLocale } from "next-intl/server";
 import { getSsrExamplePost } from "@/pages/examples/ssr-page";
+import { routing } from "@/shared/i18n/routing";
 
 // The 404 gate lives in the segment LAYOUT on purpose: page.tsx renders inside
 // the loading.tsx Suspense boundary, so by the time a page-thrown notFound()
@@ -10,9 +13,10 @@ export default async function SsrExampleLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }) {
-  const { id } = await params;
+  const { id, locale } = await params;
+  if (hasLocale(routing.locales, locale)) setRequestLocale(locale);
   await getSsrExamplePost(id);
   return children;
 }

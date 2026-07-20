@@ -11,6 +11,10 @@ import { WebsocketLive } from "./websocket-live";
  */
 const meta = {
   component: WebsocketLive,
+  // No `autodocs`/`DarkTheme` here on purpose: this is the A13 live-mock
+  // integration probe, not a documented component. The presentational children
+  // it wraps (connection-status, message-list) carry the light/dark a11y
+  // coverage for the UI this actually renders.
   tags: ["test"],
   parameters: { msw: { handlers: wsHandlers } },
 } satisfies Meta<typeof WebsocketLive>;
