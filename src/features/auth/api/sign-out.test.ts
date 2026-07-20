@@ -37,7 +37,14 @@ describe("signOut action (A9 unit)", () => {
 
   it("performs NO document.cookie write when NEXT_PUBLIC_API_MOCKING is not enabled", async () => {
     // The unit env loads `.env` (NEXT_PUBLIC_API_MOCKING=disabled): production
-    // path — only the backend can expire the httpOnly cookies.
+    // path — only the backend can expire the httpOnly cookies. The shipped
+    // logout mock answers with clearing Set-Cookie headers (its §2.4 contract),
+    // which MSW mirrors onto document.cookie in jsdom — the mock backend's
+    // write, not the feature's. Override with a header-less 200 so the spy
+    // observes only signOut's own writes.
+    server.use(
+      http.post("*/auth/logout", () => HttpResponse.json({ data: { message: "Signed out" } })),
+    );
     const setCookie = vi.spyOn(document, "cookie", "set");
     await signOut(new QueryClient(), { push: vi.fn() });
     expect(setCookie).not.toHaveBeenCalled();

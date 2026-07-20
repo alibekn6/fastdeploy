@@ -120,8 +120,21 @@ export const handlers = [
       mock_tokens: { access_token: mintMockJwt({ sub, email, ttlSeconds: ACCESS_TTL_SECONDS }) },
     });
   }),
-  // No auth check at all — any cookie state gets 200 (break-glass for stale sessions).
-  http.post(api("/auth/logout"), () => envelope({ message: "Signed out" })),
+  // No auth check at all — any cookie state gets 200 (break-glass for stale
+  // sessions), and BOTH cookies are cleared unconditionally: after a
+  // server-side revocation only the backend can delete the httpOnly cookies,
+  // so this response is the F5 revoked-session escape's exit (spec §2.4/§2.6).
+  http.post(api("/auth/logout"), () =>
+    HttpResponse.json(
+      { data: { message: "Signed out" } },
+      {
+        headers: [
+          ["Set-Cookie", `${SESSION_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`],
+          ["Set-Cookie", `${REFRESH_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0`],
+        ],
+      },
+    ),
+  ),
   http.get(api("/auth/me"), ({ cookies }) => {
     const accessToken = cookies[SESSION_COOKIE];
     const claims = accessToken ? decodeJwtPayload(accessToken) : null;

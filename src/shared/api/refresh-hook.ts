@@ -56,6 +56,25 @@ export function createRefreshHook(onAuthFailure: () => void): AfterResponseHook 
         .then((refreshResponse) => {
           if (!refreshResponse.ok) throw new Error("refresh_failed");
         })
+        .catch((error: unknown) => {
+          // Escape EXACTLY ONCE per failure burst — inside the shared promise
+          // chain, not per awaiting caller, so N concurrent 401s produce one
+          // logout and one redirect (the A8 redirect-loop measure). A failed
+          // refresh (e.g. server-side revocation) can leave an UNEXPIRED
+          // access cookie behind: the route guard decodes it as live and would
+          // bounce /login straight back to /dashboard forever. Only the
+          // backend can delete the httpOnly cookies — `auth/logout` clears
+          // them unconditionally (no auth check, spec §2.4), breaking that
+          // loop. It is fire-and-forget: per contract it always returns 200,
+          // so the swallowed failures are transport-level only, and the
+          // redirect never waits on or depends on the logout outcome.
+          fetch(new URL("auth/logout", env.NEXT_PUBLIC_API_URL), {
+            method: "POST",
+            credentials: "include",
+          }).catch(() => {});
+          onAuthFailure();
+          throw error;
+        })
         .finally(() => {
           refreshPromise = null;
         });
@@ -65,19 +84,8 @@ export function createRefreshHook(onAuthFailure: () => void): AfterResponseHook 
       await refreshPromise;
       return await fetch(request.clone());
     } catch {
-      // A failed refresh (e.g. server-side revocation) can leave an UNEXPIRED
-      // access cookie behind: the route guard decodes it as live and would
-      // bounce /login straight back to /dashboard forever. Only the backend
-      // can delete the httpOnly cookies — `auth/logout` clears them
-      // unconditionally (no auth check, spec §2.4), breaking that loop. It is
-      // fire-and-forget: per contract it always returns 200, so the swallowed
-      // failures are transport-level only, and the redirect below never waits
-      // on or depends on the logout outcome.
-      fetch(new URL("auth/logout", env.NEXT_PUBLIC_API_URL), {
-        method: "POST",
-        credentials: "include",
-      }).catch(() => {});
-      onAuthFailure();
+      // Refresh failed: the shared chain above already performed the one
+      // logout + redirect for this burst; every caller just keeps its 401.
       return undefined;
     }
   };
