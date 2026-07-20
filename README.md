@@ -2,7 +2,8 @@
 
 A production-style **Next.js 16 + Feature-Sliced Design** boilerplate for a frontend that consumes
 an **external HTTP API** — mocked with **MSW** in dev/test. Auth calls that API directly and the
-backend sets a Secure httpOnly session cookie.
+backend sets Secure httpOnly `access_token`/`refresh_token` cookies (see
+[Authentication](#authentication)).
 
 ## Quickstart
 
@@ -53,3 +54,57 @@ Docker · GitHub Actions · `@t3-oss/env-nextjs`.
 Feature-Sliced Design under `src/` (`app, pages, widgets, features, entities, shared`), with the
 Next App Router at the **root** `app/` (thin re-exports) and an empty root `pages/` placeholder.
 Per-tool rules and best/worst practices are in **`docs/stack/`**. Agent guidance is in `CLAUDE.md`.
+
+## Authentication
+
+Auth is **backend-owned**. The app calls the external API directly (`auth/login`, `auth/register`,
+`auth/refresh`, `auth/logout`) and the backend replies with two Secure httpOnly cookies —
+`access_token` (short-lived) and `refresh_token` (30 days) — both `SameSite=Lax; Path=/`. No token
+ever lives in `localStorage` or JS memory, and session state lives only in the TanStack Query cache.
+The cookies must land on the app's origin (same site, or a shared registrable domain) or neither the
+middleware nor SSR can read them.
+
+**Route guard — routing only, not security.** `proxy.ts` composes next-intl **i18n-first**, then runs
+`checkRouteAccess` (`src/shared/lib/route-guard/`). The guard base64url-decodes the access token's
+payload and **never verifies its signature** — it reads UNVERIFIED claims purely to decide where to
+send the browser. It is a pure, total function (never throws, no network) and treats a token as live
+iff `exp` is numeric and within a 30 s clock-skew grace. A bare `refresh_token` also admits, since it
+can mint a new access token; but only a *live* access token bounces you off `/login`, so a revoked
+refresh cookie can't trap you in a redirect loop. **The API is the real security boundary:** a forged
+or edited cookie gets you a page shell and nothing else — every byte of data still comes from an API
+call the backend authorizes. The guard runs identically in every mode; there is no mock-mode bypass.
+
+**Transparent refresh.** A 401 from any non-auth route is handled by a ky `afterResponse` hook
+(`src/shared/api/refresh-hook.ts`): it issues a **single in-flight** `auth/refresh` (concurrent 401s
+await the same promise, so the backend sees one refresh per expiry burst), then retries the original
+request **once** via raw `fetch`, which bypasses the hook and so cannot recurse. There is no refresh
+rotation — the `refresh_token` is not reissued. If the refresh fails (e.g. server-side revocation),
+the escape happens inside the shared promise chain, so N concurrent failures still produce **exactly
+one** `auth/logout` + one redirect to the locale-correct login page. That logout is what breaks the
+loop: only the backend can delete an httpOnly cookie, and `auth/logout` clears both unconditionally.
+
+**Mock mode limits.** With `NEXT_PUBLIC_API_MOCKING=enabled`, MSW mints unsigned `alg:none` JWTs with
+real `exp`/`iat` claims so the guard behaves exactly as in production, and the client writes the two
+cookies via `document.cookie` — a Service Worker cannot set httpOnly cookies, so mock cookies are
+readable by JS and are **not** httpOnly, Secure, or backend-controlled. Production responses never
+carry token values in the body. The WebSocket example connects over `wss://` (enforced by a Zod
+refine on `NEXT_PUBLIC_WS_URL`, relaxed to `ws://` only for localhost) and relies on the httpOnly
+cookies riding the same-site upgrade request rather than a `?token=` query param. MSW's `ws.link()`
+mock **cannot read cookies on the upgrade**, so WebSocket cookie authentication is exercised only
+against a real backend and is **not covered by this repo's test suite**.
+
+**Deliberate tradeoff — email enumeration.** Sign-up surfaces a distinct message on a 409
+(`emailTaken`) instead of collapsing it into the generic error. That is a knowing, documented email
+enumeration tradeoff: it tells an attacker which addresses are registered, in exchange for a
+materially better signup experience. If your threat model forbids it, return a generic message and
+confirm by email instead.
+
+**Backend assumptions.** This frontend is only as safe as the API behind it. The backend must:
+verify the JWT **signature** and expiry on every request (the frontend never does); enforce the
+password policy server-side (minimum 12 characters — client validation is UX only); rate-limit
+`auth/login` and `auth/register` (the UI renders a `429` state but cannot enforce anything); expire
+and revoke refresh tokens server-side, honouring the no-rotation contract; and set the cookies
+`Secure; HttpOnly; SameSite=Lax; Path=/`. `SameSite=Lax` is the CSRF posture: it blocks cross-site
+POSTs while allowing top-level navigations, so state-changing endpoints must stay non-`GET`; add CSRF
+tokens if you ever need `SameSite=None`. Production deployment requires HTTPS — the Secure httpOnly
+cookies do not function over plain HTTP.

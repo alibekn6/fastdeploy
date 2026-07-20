@@ -16,9 +16,20 @@ export const http = ky.create({
   credentials: "include",
   retry: { limit: 2 },
   timeout: 15_000,
-  hooks: { beforeRequest: [({ request }) => request.headers.set("Accept", "application/json")] },
+  hooks: {
+    beforeRequest: [
+      // In mock mode the browser must not fetch before the MSW worker is live;
+      // resolves immediately on the server and when mocking is disabled.
+      () => mockWorkerReady().then(() => undefined),
+      ({ request }) => request.headers.set("Accept", "application/json"),
+    ],
+    // Transparent 401 → refresh → retry.
+    afterResponse: [createRefreshHook(redirectToLogin)],
+  },
 });
 ```
+
+Both hooks are load-bearing. `mockWorkerReady()` is where the "no fetch before the MSW worker is live" invariant lives — it is deliberately **not** enforced by gating render in `MswProvider`, which would suppress the SSR body. The `afterResponse` refresh hook is not optional either: the route guard admits refresh-token-only sessions that every API call would otherwise 401.
 
 **ky 2.x critical differences from ky 1.x / ky 0.x:**
 
@@ -56,10 +67,26 @@ The auth feature uses `http` to call the external auth endpoints directly:
 
 ```ts
 // src/features/auth/api/sign-in.ts
-const { token } = await http.post("auth/login", { json: parsed }).json<{ token: string }>();
+const json = await http.post("auth/login", { json: input }).json<unknown>();
+const { mock_tokens } = unwrap(LoginEnvelopeSchema.parse(json));
+if (mock_tokens) writeMockSessionCookies(mock_tokens);
+const session = await queryClient.fetchQuery(sessionQueries.current());
 ```
 
-The external backend sets a Secure `httpOnly` session cookie (`credentials: "include"` on `http` sends it back). In **mock mode only** (`NEXT_PUBLIC_API_MOCKING`), the client sets a readable `session` cookie via `document.cookie` so `proxy.ts` can gate routes — a Service Worker can't set httpOnly cookies.
+No token is ever returned to JS in production — the response body carries only a message (the auth block's `{data}` envelope), and the session is established by the cookies the backend set. Session state then lives **only** in the `["session"]` query cache, primed by `auth/me`.
+
+The external backend sets **two** Secure `httpOnly` cookies — `access_token` (short-lived) and `refresh_token` (30 days), both `SameSite=Lax; Path=/` (names exported from `src/shared/config/auth.ts`). `credentials: "include"` on `http` sends them back. In **mock mode only** (`NEXT_PUBLIC_API_MOCKING`), `src/features/auth/api/mock-session-cookies.ts` writes both via `document.cookie` — a Service Worker can't set httpOnly cookies, so mock responses carry token values in a `mock_tokens` body field (production responses never do). Those mock cookies are readable by JS and are not httpOnly or Secure.
+
+### Transparent refresh — `src/shared/api/refresh-hook.ts`
+
+`createRefreshHook` is the ky `afterResponse` hook wired into `http`. On a **401 from a non-auth route** it:
+
+1. Issues a **single in-flight** `auth/refresh`. Concurrent 401s await the same module-scoped promise (reset in `finally`), so the backend sees exactly one refresh per expiry burst.
+2. Retries the original request **once** via raw `fetch(request.clone())`. Raw fetch bypasses the hook, so a still-401 retry cannot recurse; the retried `Response` is returned to ky as final (`throwHttpErrors` runs after hooks, so callers parse the retried body).
+
+The four token-lifecycle routes (`auth/login`, `auth/register`, `auth/refresh`, `auth/logout`) are **excluded** so refresh can't recurse; `auth/me` is excluded too, because its 401 is a session probe ("signed out" is a valid state, not a failure).
+
+If the refresh itself fails (e.g. server-side revocation), the escape fires **inside the shared promise chain** — not per awaiting caller — so N concurrent 401s produce exactly **one** `auth/logout` and **one** redirect to the localized login page. That logout is load-bearing: a failed refresh can leave an unexpired `access_token` behind, which the guard would read as live and bounce `/login` → `/dashboard` forever. Only the backend can delete an httpOnly cookie, and `auth/logout` clears both unconditionally (it performs no auth check). Transparent refresh invalidates **no** query keys — the user is unchanged, so preserving the cache is correct.
 
 ### MSW compatibility
 
@@ -84,7 +111,9 @@ This mirrors how ky resolves `baseUrl + path`, so MSW intercepts ky requests cor
 - **Do not** add a leading slash to request paths — `"/users/1"` will resolve incorrectly under `baseUrl` (the base path is dropped).
 - **Do not** write `hooks: { beforeRequest: [(req) => req.headers.set(...)] }` — in ky 2.x `beforeRequest` receives a state object; use `({ request }) => request.headers.set(...)`.
 - **Do not** cast the response directly to a TypeScript type without parsing: `.json<User>()` is a type assertion only; it performs no runtime check. Use the Zod fetcher.
-- **Do not** write the `session` cookie from client code outside mock mode — production relies on the backend's Secure `httpOnly` cookie; the client write is gated by `NEXT_PUBLIC_API_MOCKING`.
+- **Do not** write the `access_token`/`refresh_token` cookies from client code outside mock mode — production relies on the backend's Secure `httpOnly` cookies; the client write (`mock-session-cookies.ts`) is gated by `NEXT_PUBLIC_API_MOCKING`.
+- **Do not** bypass `http` with a raw `fetch` for API calls — you lose the transparent 401→refresh→retry and the mock-worker-ready gate. (The refresh hook's own internal `fetch` calls are deliberate: they must not recurse through the hook.)
+- **Do not** add auth routes to the refresh path — `auth/login`, `auth/register`, `auth/refresh`, `auth/logout`, and `auth/me` must stay excluded, or a 401 recurses or bounces anonymous visitors off public pages.
 
 ## References
 

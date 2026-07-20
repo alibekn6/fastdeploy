@@ -86,7 +86,7 @@ This avoids the hydration mismatch that `Math.random()` causes.
 </MswProvider>
 ```
 
-`MswProvider` gates render until the service worker is ready (dev/mock mode only). `QueryProvider` owns the React Query client. Both are pure wrappers; no business logic lives here.
+`MswProvider` starts the service worker (dev/mock mode only) and renders children immediately — it does **not** gate render, which would suppress the server-rendered body; the "no fetch before the worker is live" invariant lives in the ky `beforeRequest` hook. `QueryProvider` owns the React Query client. Both are pure wrappers; no business logic lives here.
 
 ## ✅ Best practices
 

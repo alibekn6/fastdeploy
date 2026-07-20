@@ -27,7 +27,9 @@ This ensures handlers match the absolute URLs that the ky `http` client construc
 
 ### Browser wiring (dev)
 
-`src/app/providers/msw-provider.tsx` is a `"use client"` component. It reads `NEXT_PUBLIC_API_MOCKING === "enabled"`, dynamically imports `browser.ts` on mount, starts the worker with `onUnhandledRequest: "bypass"`, and gates `children` behind a `ready` flag so no fetch fires before MSW is active.
+`src/app/providers/msw-provider.tsx` is a `"use client"` component. It reads `NEXT_PUBLIC_API_MOCKING === "enabled"`, dynamically imports `browser.ts` on mount, starts the worker with `onUnhandledRequest: "bypass"`, and calls `markMockWorkerReady()`.
+
+It **renders `children` immediately**, including during SSR. It must not render-gate: returning `null` until the worker started suppressed the entire server-rendered body in mock mode, so Next flushed an empty 200 shell for every page — no real SSR HTML, and `notFound()`/error status codes were lost. The "no fetch fires before the worker is live" guarantee lives at the **transport seam** instead: the ky client (`src/shared/api/http.ts`) has a `beforeRequest` hook that awaits `mockWorkerReady()` (`src/shared/api/mocks/worker-ready.ts`), which resolves immediately on the server and whenever mocking is disabled.
 
 `app/layout.tsx` wraps `<QueryProvider>` inside `<MswProvider>`, so every client query is intercepted:
 
@@ -59,6 +61,26 @@ The `NEXT_RUNTIME === "nodejs"` guard prevents the import from running in the Ed
 
 > **Gotcha:** the server-side global-`fetch` patch is installed once at startup. Turbopack HMR during `pnpm dev:mock` can drop it, after which server requests escape to the real network (symptom: `getaddrinfo ENOTFOUND`). Restart `dev:mock` to restore. `next build` + `next start` is unaffected.
 
+### Mock cookie scheme (dual decodable JWTs)
+
+Auth mocking has to satisfy one hard constraint: **the route guard must run identically in mock mode** — no bypass. The guard (`src/shared/lib/route-guard/`) decodes the access token's `exp`/`iat`, so an opaque placeholder string would fail to decode and every mock session would read as signed-out.
+
+So `handlers.ts` exports `mintMockJwt()`, which mints an **unsigned but decodable** JWT in a pinned format:
+
+```text
+base64url({"alg":"none","typ":"JWT"}) . base64url({sub, email, exp, iat}) . "mock"
+```
+
+The header is literally `alg: "none"` and the third segment is the constant string `"mock"` — there is no signature and nothing verifies one. What matters is that the middle segment carries **real** `exp`/`iat` claims, so the guard's liveness check (`exp` numeric, inside the 30 s skew grace) exercises the same code path it does in production. Lifetimes match the spec: `access_token` 900 s, `refresh_token` 30 days.
+
+Both tokens are minted as such JWTs. `auth/login` and `auth/register` return them in a `mock_tokens` field of the auth `{data}` envelope, because **a Service Worker cannot set httpOnly cookies** — production responses never carry token values, only `Set-Cookie`. In mock mode the client copies them into `document.cookie` (`src/features/auth/api/mock-session-cookies.ts`, `Path=/; SameSite=Lax` with `Max-Age` read from each token's own `exp`).
+
+Handler contracts worth knowing:
+
+- `auth/refresh` validates **only the `refresh_token` cookie**, and only for presence — it is opaque to the client. The `access_token` is not validated at all. It returns a fresh access token and **no rotation**: the `refresh_token` is never reissued.
+- `auth/logout` performs **no auth check** (any cookie state gets 200) and clears **both** cookies unconditionally via two `Set-Cookie` headers with `Max-Age=0`. This is the revoked-session escape's exit: after a server-side revocation only the backend can delete httpOnly cookies.
+- `auth/register` 409s deterministically for `taken@example.com` and registers any other email — stateless and reentrant.
+
 ### Integration tests
 
 Tests spin up their own `setupServer()` instances (see `src/shared/api/fetcher.integration.test.ts`). They do not import `node.ts` — they build isolated servers per suite with `beforeAll/afterAll/afterEach` lifecycle.
@@ -69,7 +91,7 @@ Tests spin up their own `setupServer()` instances (see `src/shared/api/fetcher.i
 - Always build handler URLs with the `api()` helper so they stay in sync with `NEXT_PUBLIC_API_URL`.
 - Use `onUnhandledRequest: "bypass"` in `browser.ts` / `instrumentation.ts` (non-API requests pass through); use `"error"` in isolated test suites to catch typos early.
 - Reset handlers with `server.resetHandlers()` in `afterEach` when overriding per-test.
-- Keep `MswProvider` as a guard: `if (!ready) return null` ensures no child renders (and fires queries) before the worker is live.
+- Keep `MswProvider` render-transparent (`return <>{children}</>`). Enforce "no fetch before the worker is live" in the ky `beforeRequest` hook via `mockWorkerReady()` — never by gating render, which breaks SSR bodies and status codes.
 
 ## ❌ Worst practices / anti-patterns
 

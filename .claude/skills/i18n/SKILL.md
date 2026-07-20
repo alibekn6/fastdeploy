@@ -14,7 +14,7 @@ description: Use when editing src/shared/i18n/**, messages/**, app/[locale]/**, 
 - **Static metadata:** pass an explicit `{ locale }` to `getTranslations` in `generateMetadata`.
 - **Typed messages** come from `global.d.ts` (`AppConfig` augmentation from `messages/en.json`) — keep `en/ru/kk` JSON in sync; never hardcode UI strings.
 - **Navigate** with `Link`/`useRouter`/`redirect` from `@/shared/i18n` (locale-aware) — not `next/link`.
-- **`proxy.ts` order:** the cookie auth gate runs **first** (it strips a leading `/ru|/kk`, presence-checks `SESSION_COOKIE` for `/dashboard`), **then** hands off to `createMiddleware(routing)`. The matcher stays site-wide but **excludes `ingest`** (the PostHog proxy): `"/((?!api|ingest|_next|_vercel|.*\\..*).*)"` — otherwise the locale prefix breaks the `/ingest` capture rewrite.
+- **`proxy.ts` order — i18n-first:** `createMiddleware(routing)` runs **first** and owns every locale-prefix redirect (a non-`ok` response is returned untouched). The canonical delocalized path is then read from the `x-middleware-rewrite` header with the leading segment clamped against `routing.locales` (unknown ⇒ default locale, so nothing raw reaches a redirect target), and **only then** does `checkRouteAccess` run, emitting at most one locale-prefixed redirect. The matcher stays site-wide but **excludes `ingest`** (the PostHog proxy): `"/((?!api|ingest|_next|_vercel|.*\\..*).*)"` — otherwise the locale prefix breaks the `/ingest` capture rewrite.
 
 ## Verify
 

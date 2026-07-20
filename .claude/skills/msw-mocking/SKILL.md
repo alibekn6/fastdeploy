@@ -20,7 +20,7 @@ The **server** one mocks server-side fetches (e.g. the dashboard's `prefetchQuer
 
 - **One handler file:** `src/shared/api/mocks/handlers.ts`. Build URLs with the `api()` helper (`new URL(path, env.NEXT_PUBLIC_API_URL)`) so they match ky — never hardcode URLs.
 - **Don't cross the runtimes:** never import `browser.ts` in `instrumentation.ts` or tests; never call `worker.start()` in a Server Component. Use `node.ts` for all Node environments.
-- **`MswProvider` gates children** behind a `ready` flag (`if (!ready) return null`) so no fetch fires before the worker is live.
+- **`MswProvider` must NOT gate children** — it renders them immediately (returning `null` until the worker started suppressed the SSR body and made Next flush an empty 200 shell). "No fetch before the worker is live" is enforced in the ky `beforeRequest` hook, which awaits `mockWorkerReady()`.
 - `msw` belongs in **`devDependencies`**, never `dependencies`.
 - **`public/mockServiceWorker.js` is generated** (`npx msw init public/`) and Biome-ignored — don't hand-edit.
 

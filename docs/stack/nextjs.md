@@ -65,18 +65,22 @@ export async function getPosts() {
 
 **Fullstack repo** uses Server Actions for mutations (`"use server"` in `src/features/create-post/api/create-post.ts`). Mutations go through `auth.api.getSession` before touching the DB.
 
-**Frontend repo** calls the external API directly for auth (`http.post("auth/login")` in `src/features/auth/api/sign-in.ts`); the backend sets the Secure httpOnly session cookie. It has no auth Route Handlers.
+**Frontend repo** calls the external API directly for auth (`http.post("auth/login")` in `src/features/auth/api/sign-in.ts`); the backend sets two Secure httpOnly cookies, `access_token` and `refresh_token` (`SameSite=Lax; Path=/`). It has no auth Route Handlers.
 
 ### Proxy
 
-Both repos use a root `proxy.ts` (renamed from `middleware.ts` in Next.js 16; the exported function is now `proxy`, and it runs on the Node.js runtime — the Edge runtime is not supported in `proxy`). It does an optimistic auth-cookie check and redirects unauthenticated requests to `/login` before the page renders. Matcher: `["/dashboard/:path*"]`. Fullstack uses `getSessionCookie` from `better-auth/cookies`; frontend checks for the `SESSION_COOKIE` presence directly.
+Both repos use a root `proxy.ts` (renamed from `middleware.ts` in Next.js 16; the exported function is now `proxy`, and it runs on the Node.js runtime — the Edge runtime is not supported in `proxy`). Each redirects unauthenticated requests to `/login` before the page renders.
+
+**Fullstack** uses `getSessionCookie` from `better-auth/cookies` with a `["/dashboard/:path*"]` matcher.
+
+**Frontend** composes locale routing with the auth guard **i18n-first** under a **site-wide** matcher, `"/((?!api|ingest|_next|_vercel|.*\\..*).*)"` — site-wide because next-intl must see every request to resolve locales (`ingest` is excluded so the PostHog reverse-proxy rewrite isn't locale-prefixed). `createMiddleware(routing)` runs first and owns locale-prefix redirects; the canonical delocalized path is then derived from its `x-middleware-rewrite` header (leading segment clamped against `routing.locales`, so nothing raw reaches a redirect target); only then does `checkRouteAccess` (`src/shared/lib/route-guard/`) run and emit at most one locale-prefixed redirect. The guard is **not** a cookie-presence check: it base64url-decodes the `access_token` payload **without verifying the signature** and applies a real `exp` liveness test (30 s skew grace). It is a routing gate only — the API remains the security boundary. See `docs/stack/i18n.md` for the full pipeline.
 
 ### Providers in `app/layout.tsx`
 
 Providers are client components composed in `RootLayout`:
 
 - **Fullstack:** `QueryProvider` only (`src/app/providers/query-provider.tsx`).
-- **Frontend:** `MswProvider` wrapping `QueryProvider` (`src/app/providers/msw-provider.tsx`). `MswProvider` delays render until the MSW service worker is ready when `NEXT_PUBLIC_API_MOCKING=enabled`.
+- **Frontend:** `MswProvider` wrapping `QueryProvider` (`src/app/providers/msw-provider.tsx`). `MswProvider` starts the MSW service worker when `NEXT_PUBLIC_API_MOCKING=enabled` but renders children immediately (delaying render would suppress the SSR body); the ky transport awaits `mockWorkerReady()` instead.
 
 ### Docker / standalone output
 
