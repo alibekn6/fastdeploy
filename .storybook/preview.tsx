@@ -10,6 +10,7 @@ import ru from "../messages/ru.json";
 import { handlers } from "../src/shared/api/mocks/handlers";
 import { markMockWorkerReady } from "../src/shared/api/mocks/worker-ready";
 import "../src/app/styles/globals.css";
+import "./preview.css";
 
 initialize({ onUnhandledRequest: "bypass" }, handlers);
 // Storybook wires MSW via msw-storybook-addon (mswLoader guarantees the worker
@@ -43,15 +44,19 @@ const withQueryClient: Decorator = (Story) => {
  * either (`context.globals` arrives without a `theme` key). Tailwind's dark
  * variant is `&:is(.dark *)` — satisfied by ANY ancestor — so wrapping the
  * canvas is equivalent to the html class and is deterministic under test.
+ *
+ * The wrapper also paints `bg-background text-foreground` in BOTH themes,
+ * mirroring `<body>` in app/[locale]/layout.tsx. Without it a dark story got
+ * dark *tokens* on Storybook's white canvas, so every muted/primary text landed
+ * on white — the a11y gate correctly failed it (#a9a9b1 on #ffffff, 2.33:1).
  */
-const withStoryTheme: Decorator = (Story, context) =>
-  context.parameters.theme === "dark" ? (
-    <div className="dark">
+const withStoryTheme: Decorator = (Story, context) => (
+  <div className={context.parameters.theme === "dark" ? "dark" : undefined}>
+    <div className="bg-background text-foreground">
       <Story />
     </div>
-  ) : (
-    <Story />
-  );
+  </div>
+);
 
 const withI18n: Decorator = (Story, context) => {
   const locale = (context.globals.locale ?? "en") as keyof typeof messagesByLocale;

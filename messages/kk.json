@@ -2,7 +2,9 @@
   "Common": {
     "appName": "nextjs-frontend",
     "signIn": "Кіру",
-    "signOut": "Шығу"
+    "signOut": "Шығу",
+    "themeToDark": "Қараңғы тақырыпқа ауысу",
+    "themeToLight": "Ашық тақырыпқа ауысу"
   },
   "Auth": {
     "title": "Кіру",

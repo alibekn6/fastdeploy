@@ -27,3 +27,55 @@
   --color-ring: hsl(240 10% 3.9%);
   --radius: 0.625rem;
 }
+
+/* Dark palette. Overrides the `@theme` tokens rather than sprinkling `dark:`
+ * utilities through components, so every existing role class flips with the
+ * `.dark` class and no component needs to know which theme is active.
+ *
+ * Deliberately NOT the shadcn zinc dark values: its background (#09090b) is
+ * near-black and its foreground is near-white, which produces halation — the
+ * glow around light text on very dark surfaces. Surfaces start at #18181b and
+ * step up for elevation; text tops out at 88% lightness.
+ *
+ * Elevation is carried by surface lightness, not shadows: shadows are invisible
+ * on dark backgrounds. background < card < muted/secondary < accent. */
+.dark {
+  --color-background: hsl(240 6% 10%);
+  --color-foreground: hsl(240 5% 88%);
+  --color-card: hsl(240 5% 14%);
+  --color-card-foreground: hsl(240 5% 88%);
+  --color-primary: hsl(240 5% 90%);
+  --color-primary-foreground: hsl(240 6% 10%);
+  --color-secondary: hsl(240 4% 20%);
+  --color-secondary-foreground: hsl(240 5% 88%);
+  --color-muted: hsl(240 4% 20%);
+  --color-muted-foreground: hsl(240 5% 68%);
+  --color-accent: hsl(240 4% 24%);
+  --color-accent-foreground: hsl(240 5% 88%);
+  /* Lightened from the light theme's hsl(0 72% 51%): the a11y-critical use is
+   * error *text* on a dark surface, which needs a light red. That makes it too
+   * light to sit behind white button labels, so the destructive button fades to
+   * `dark:bg-destructive/60` — the composite over the dark background lands
+   * back in button range. This is the swap button.tsx's comment anticipated. */
+  --color-destructive: hsl(0 72% 67%);
+  --color-destructive-foreground: hsl(240 6% 10%);
+  /* `border` is decorative separation (dividers, card edges) and stays subtle.
+   * `input` delimits a form control, so WCAG 1.4.11 wants 3:1 against the
+   * surface behind it — 42% lightness clears it at 3.11:1. */
+  --color-border: hsl(240 4% 26%);
+  --color-input: hsl(240 5% 42%);
+  --color-ring: hsl(240 5% 70%);
+}
+
+/* Tailwind v4 changed the default border color from v3's gray-200 to
+ * `currentColor`, so a bare `border` / `border-b` (Card, Header, …) painted the
+ * *text* colour. Light mode hid it — currentColor was near-black, which reads as
+ * a heavy border. Dark mode exposed it: cards came out ringed in off-white
+ * (#dfdfe2). Point the default at the token the palette already defines. */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
+}

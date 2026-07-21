@@ -7,6 +7,7 @@ import { signOut } from "@/features/auth";
 import { routes } from "@/shared/config/routes";
 import { Link, useRouter } from "@/shared/i18n";
 import { Button } from "@/shared/ui/button";
+import { ThemeToggle } from "./theme-toggle";
 
 export function Header() {
   const router = useRouter();
@@ -37,6 +38,7 @@ export function Header() {
       {/* Session slot — min-h matches the h-9 controls so the three states
           (skeleton / email + sign out / sign in) never shift the layout. */}
       <div className="flex min-h-9 items-center gap-3">
+        <ThemeToggle />
         {isPending ? (
           <div
             data-testid="session-skeleton"

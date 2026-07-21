@@ -2,7 +2,9 @@
   "Common": {
     "appName": "nextjs-frontend",
     "signIn": "Sign in",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "themeToDark": "Switch to dark theme",
+    "themeToLight": "Switch to light theme"
   },
   "Auth": {
     "title": "Sign in",

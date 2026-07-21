@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import { MswProvider, QueryProvider } from "@/app/providers";
+import { MswProvider, QueryProvider, ThemeProvider } from "@/app/providers";
 import { ConsentBanner, PageViewTracker, PostHogProvider } from "@/shared/analytics";
 import { SITE_URL } from "@/shared/config/seo";
 import { routing } from "@/shared/i18n";
@@ -16,13 +16,16 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-// The boilerplate ships only a light theme (globals.css defines no `.dark`
-// palette), so declare `light` — otherwise the browser applies dark UA defaults
-// under OS dark mode and unstyled text (e.g. the outline sign-out button) turns
-// white-on-white. Add a dark `@theme` + a `.dark` toggle to support dark mode.
+// Both palettes ship (globals.css defines the `.dark` token overrides), so the
+// browser is told to expect either — this is what makes UA-styled surfaces like
+// form controls and scrollbars follow the active theme. `themeColor` is split
+// per scheme so the mobile browser chrome matches `--color-background`.
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
-  colorScheme: "light",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#18181b" },
+  ],
+  colorScheme: "light dark",
 };
 
 export function generateStaticParams() {
@@ -56,13 +59,15 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <NextIntlClientProvider messages={clientMessages}>
-          <PostHogProvider>
-            <MswProvider>
-              <QueryProvider>{children}</QueryProvider>
-            </MswProvider>
-            <PageViewTracker />
-            <ConsentBanner />
-          </PostHogProvider>
+          <ThemeProvider>
+            <PostHogProvider>
+              <MswProvider>
+                <QueryProvider>{children}</QueryProvider>
+              </MswProvider>
+              <PageViewTracker />
+              <ConsentBanner />
+            </PostHogProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

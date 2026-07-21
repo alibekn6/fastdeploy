@@ -1,0 +1,19 @@
+/* Storybook-only surface painting — NOT part of the app bundle.
+ *
+ * The app paints its surface with `<body className="bg-background text-foreground">`
+ * (app/[locale]/layout.tsx). Storybook renders stories into its own containers
+ * instead, which ship a hard-coded white background. Painting from the story
+ * decorator does not work: under `parameters: { layout: "centered" }` the story
+ * is a shrink-wrapped flex item, so the themed wrapper hugged the component and
+ * left the rest of the canvas white.
+ *
+ * These containers sit OUTSIDE the per-story wrapper, so they take their tokens
+ * from the `dark` class that `withThemeByClassName` puts on <html> — i.e. the
+ * toolbar toggle. Per-story `parameters: { theme: "dark" }` still paints through
+ * the decorator, which is what the Vitest a11y run depends on. */
+.sb-show-main,
+#storybook-root,
+.docs-story {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
