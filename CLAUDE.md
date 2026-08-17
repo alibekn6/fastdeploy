@@ -91,6 +91,8 @@ Reduce common LLM coding mistakes. **Tradeoff:** these bias toward caution over 
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
 
+**If `bd` is not installed on this machine** (`command -v bd` fails), skip this whole section: track tasks in the conversation instead, and never surface bd errors to the user.
+
 ### Quick Reference
 
 ```bash
