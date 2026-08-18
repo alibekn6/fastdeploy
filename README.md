@@ -1,11 +1,8 @@
 # fastdeploy
 
-**RU:** Опишите платформу обычными словами — получите работающий сайт в интернете.
-**EN:** Describe your platform in plain words — get a working site live on the internet.
+Опишите платформу обычными словами — получите работающий сайт в интернете.
 
----
-
-## 🇷🇺 Что это
+## Что это
 
 Это стартовый набор для «вайбкодинга»: человек **без навыков программирования** открывает
 эту папку в [Claude Code](https://claude.com/claude-code), пишет по-человечески, что ему
@@ -41,64 +38,48 @@
 аналитика (PostHog, опционально) · тесты и линтеры — всем этим управляет Claude,
 пользователю это не показывается.
 
----
+## Скиллы
 
-## 🇬🇧 What is this
+Управляемый опыт живёт в `.claude/skills/` и едет вместе с репозиторием:
 
-A vibecoding starter kit: a person **with zero programming skills** opens this folder in
-[Claude Code](https://claude.com/claude-code), describes what they need in plain language,
-and gets a real platform — pages, forms, auth, multi-language, dark theme, SEO — not a pile
-of HTML files. Non-technical builders start at **[START_HERE.md](START_HERE.md)**.
-
-The trick: until the backend exists, the platform runs on **realistic sample data (MSW)** —
-sign-in, dashboards and lists all work, so the whole product can be designed, demoed and
-deployed first. When the real backend lands, switching to live data is a single environment
-variable, and the mock handlers double as the documented API contract for the backend team.
-
----
-
-## The skill layer
-
-The guided experience lives in `.claude/skills/` and ships with the repo:
-
-| Skill | Trigger | What it does |
+| Скилл | Срабатывает на | Что делает |
 | --- | --- | --- |
-| `/start` | first session, "с чего начать" | installs everything, creates `.env`, opens the site in the browser |
-| `/build` | "хочу платформу…", "добавь страницу…" | plain-language feature building on top of the template's conventions |
-| `/deploy` | "опубликуй", "publish my site" | deploys to Vercel with the right env vars (mock mode until the backend exists) |
+| `/start` | первая сессия, «с чего начать» | ставит всё нужное, создаёт `.env`, открывает сайт в браузере |
+| `/build` | «хочу платформу…», «добавь страницу…» | строит функции по описанию обычными словами, по правилам шаблона |
+| `/deploy` | «опубликуй», «выложи сайт» | деплоит на Vercel с правильными настройками (мок-режим, пока нет бэкенда) |
 
-Users never need to know these names — `CLAUDE.md` routes plain-language requests to the
-right skill automatically. Slash commands are just shortcuts.
+Пользователю не нужно знать эти названия — `CLAUDE.md` сам направляет обычные фразы в
+нужный скилл. Слэш-команды — просто быстрый путь.
 
-## For developers
+## Для разработчиков
 
 ```bash
 pnpm install
-cp .env.example .env   # then set NEXT_PUBLIC_API_MOCKING=enabled for mock mode
-pnpm dev:mock          # → http://localhost:3000 (sign in with any credentials)
+cp .env.example .env   # затем поставьте NEXT_PUBLIC_API_MOCKING=enabled для мок-режима
+pnpm dev:mock          # → http://localhost:3000 (вход с любыми данными)
 ```
 
-| Task | Command |
+| Задача | Команда |
 | --- | --- |
-| Dev (mocked / plain) | `pnpm dev:mock` · `pnpm dev` |
-| Lint / types | `pnpm lint` · `pnpm typecheck` |
-| Tests (unit / integration / e2e) | `pnpm test` · `pnpm test:integration` · `pnpm e2e` |
+| Дев-сервер (с моками / без) | `pnpm dev:mock` · `pnpm dev` |
+| Линт / типы | `pnpm lint` · `pnpm typecheck` |
+| Тесты (unit / integration / e2e) | `pnpm test` · `pnpm test:integration` · `pnpm e2e` |
 | Storybook | `pnpm storybook` |
-| Production build | `pnpm build` |
+| Прод-сборка | `pnpm build` |
 
-Stack: Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn/ui ·
-Feature-Sliced Design (Steiger-enforced) · TanStack Query · MSW · next-intl · Vitest + Playwright.
+Стек: Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn/ui ·
+Feature-Sliced Design (контроль Steiger) · TanStack Query · MSW · next-intl · Vitest + Playwright.
 
-Deep documentation:
+Глубокая документация (на английском — её читают разработчики и Claude):
 
-- **[docs/frontend-template.md](docs/frontend-template.md)** — full template internals:
-  auth/cookie flow, mock-mode limits, security tradeoffs, and **backend assumptions** (read
-  this before writing the backend)
-- **[docs/stack/](docs/stack/)** — per-tool rules and best practices
-- **[CLAUDE.md](CLAUDE.md)** — agent guidance (conventions, gotchas, review subagents)
+- **[docs/frontend-template.md](docs/frontend-template.md)** — устройство шаблона:
+  авторизация и куки, ограничения мок-режима, компромиссы безопасности и **требования к
+  бэкенду** (прочитайте перед тем, как писать серверную часть)
+- **[docs/stack/](docs/stack/)** — правила и лучшие практики по каждому инструменту
+- **[CLAUDE.md](CLAUDE.md)** — инструкции для агента (конвенции, грабли, ревью-субагенты)
 
-## Roadmap
+## Роадмап
 
-- [x] Frontend template + builder skill layer + Vercel deploy (this repo)
-- [ ] Backend + database (next phase) — the frontend already consumes an external HTTP API,
-      so the backend plugs in via env vars with no frontend rework
+- [x] Фронтенд-шаблон + скиллы для вайбкодинга + деплой на Vercel (эта репка)
+- [ ] Бэкенд + база данных (следующая фаза) — фронт уже работает с внешним HTTP API,
+      бэкенд подключится через переменные окружения без переделки фронта

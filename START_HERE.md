@@ -1,50 +1,49 @@
-# Start here 👋
+# Начните здесь 👋
 
-> 🇷🇺 Claude понимает русский — просто пишите ему по-русски.
-> 🇰🇿 Claude қазақша түсінеді — оған қазақша жаза беріңіз.
+Эта папка — **готовая основа для вашей собственной веб-платформы**. Программировать не
+нужно: весь код пишет Claude (ИИ-ассистент). Вы описываете, что хотите, обычными словами —
+Claude строит это и показывает в браузере. Писать можно на русском, казахском или
+английском — Claude понимает любой.
 
-This folder is a **ready-made foundation for your own web platform**. You don't need to
-know programming — Claude (an AI assistant) writes all the code. You describe what you
-want in plain words; Claude builds it and shows it to you in your browser.
+## Что понадобится
 
-## What you need
+1. **Claude Code** — установите с <https://claude.com/claude-code>
+   (если компьютер настраивал разработчик, скорее всего уже установлен).
+2. Около 10 минут на первый запуск.
 
-1. **Claude Code** installed — get it at <https://claude.com/claude-code>
-   (if a developer set up this computer for you, it's probably already installed).
-2. About 10 minutes for the first setup.
+## Как начать
 
-## How to begin
+1. Откройте приложение **Терминал** в этой папке
+   (на Mac: правый клик по папке → *Службы* → *Новый терминал по адресу папки*).
+2. Наберите `claude` и нажмите **Enter**.
+3. Поздоровайтесь и опишите своими словами, что хотите построить. Например:
 
-1. Open the **Terminal** app in this folder
-   (on a Mac: right-click this folder → *Services* → *New Terminal at Folder*).
-2. Type `claude` and press **Enter**.
-3. Say hello and describe what you want to build, in your own words. For example:
+   > «У меня маникюрный салон. Хочу сайт, где клиенты записываются к мастерам.»
 
-   > "I run a nail salon. I want a site where clients book appointments with my masters."
+   > «Мне нужна платформа, где студенты покупают курсы и смотрят уроки.»
 
-   > "Мне нужна платформа, где студенты покупают курсы и смотрят уроки."
+Claude всё настроит, откроет ваш сайт в браузере и начнёт строить.
+Дальше — просто продолжайте разговор:
 
-Claude will set everything up, open your site in the browser, and start building.
-From then on, just keep talking:
-
-| You say | What happens |
+| Вы пишете | Что происходит |
 | --- | --- |
-| "Show me my site" | Your site opens in the browser |
-| "Add a page with prices" | Claude builds it and shows you |
-| "Make the buttons bigger" / "I don't like the colors" | Claude changes it |
-| "Publish my site" / "Deploy" | Your site goes live on the internet |
+| «Покажи мой сайт» | Сайт открывается в браузере |
+| «Добавь страницу с ценами» | Claude строит её и показывает |
+| «Сделай кнопки больше» / «Не нравятся цвета» | Claude меняет |
+| «Опубликуй сайт» | Сайт появляется в интернете по реальной ссылке |
 
-## Good to know
+## Полезно знать
 
-- **Your site runs on sample data for now.** Bookings, sign-ins and lists are simulated
-  so you can design and test everything. When your real backend (database) is connected
-  later, one setting switches it to real data — nothing you built is lost.
-- **You can't break anything.** Everything is saved with version history, and Claude can
-  undo any change. Experiment freely.
-- **If something looks wrong or scary** (red text, error messages) — don't worry, just
-  copy it to Claude and say "fix this".
+- **Пока сайт работает на образцовых данных.** Записи, входы и списки — имитация, чтобы
+  вы могли спроектировать и проверить всё. Когда позже подключится настоящий бэкенд
+  (база данных), одна настройка переведёт сайт на реальные данные — ничего из
+  построенного не потеряется.
+- **Сломать ничего нельзя.** Всё сохраняется с историей версий, и Claude может отменить
+  любое изменение. Экспериментируйте смело.
+- **Если что-то выглядит страшно** (красный текст, ошибки) — не пугайтесь: скопируйте это
+  Claude и напишите «почини».
 
 ---
 
-*Developers: see [README.md](README.md) and [CLAUDE.md](CLAUDE.md) — this is a Next.js 16 +
-FSD boilerplate with a guided builder-mode skill layer in `.claude/skills/`.*
+*Разработчикам: см. [README.md](README.md) и [CLAUDE.md](CLAUDE.md) — это шаблон на
+Next.js 16 + FSD со слоем скиллов для вайбкодинга в `.claude/skills/`.*
