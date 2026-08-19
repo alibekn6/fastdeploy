@@ -26,11 +26,14 @@ Follow the repo's dev skills for mechanics — `fsd-architecture`, `i18n`, `tans
 | A user action (запись, заказ, отправка формы) | `src/features/<name>/` — react-hook-form + Zod, mutation through the ky `http` client (which MSW intercepts) |
 | Reusable visual bits | `src/shared/ui/` (shadcn/ui style) |
 
-## Data rules (until the backend exists)
+## Data rules
 
-- **Every** data feature runs on MSW sample data. Never call a real network endpoint; never hardcode data inside components — components fetch through the normal query layer, MSW answers.
-- Fixtures must look real for the user's business: their domain, their language, plausible names/prices/dates. A nail salon gets «Айгерим — маникюр, 6000 ₸, завтра 14:00», not "Item 1".
-- **Log the API contract**: every new or changed mocked endpoint gets an entry in `docs/api-contract.md` (create it if missing): method, path, request/response shape, and which page uses it. This file is the backend team's spec — it is how vibecoded frontends become real platforms later.
+Check the mode first: **real mode** = `DATABASE_URL` present (`.env.local`/`.env`) and `NEXT_PUBLIC_API_MOCKING=disabled`; otherwise **sample mode**.
+
+- **Real mode** (the standard for platforms): a new kind of data means a table + endpoint + entity — `server/db/schema.ts` (then `pnpm db:generate && pnpm db:push`), a thin `app/api/<route>/route.ts` handler (import via `@server/*`, follow `docs/backend.md` conventions: Zod-parse input, `authenticate()` guard for user data, flat responses outside the auth block), and the `src/entities/<name>/` query layer. Seed a few realistic rows so pages aren't empty. **Also mirror the endpoint in the MSW handlers** (`handlers.ts` + fixtures) — tests and Storybook run on them; the two must never drift.
+- **Sample mode**: the same feature ships with the MSW handler + fixtures only — never call a real network endpoint, never hardcode data inside components; components always fetch through the query layer.
+- Fixtures and seeds must look real for the user's business: their domain, their language, plausible names/prices/dates. A nail salon gets «Айгерим — маникюр, 6000 ₸, завтра 14:00», not "Item 1".
+- **Log the API contract**: every new or changed endpoint (real or mocked) gets an entry in `docs/api-contract.md` (create it if missing): method, path, request/response shape, and which page uses it.
 
 ## UI text rules
 

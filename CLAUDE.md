@@ -25,6 +25,10 @@ If the user writes in plain business language — describes a platform/site/feat
 - Build without env: `SKIP_ENV_VALIDATION=1 pnpm build`
 - Locales: `en` (default, unprefixed), `ru`, `kk` (Kazakh). The CI/full-tree lint gate is `pnpm lint:ci` (Biome over the whole tree, including `docs/` and JSON).
 
+## Real backend (in-app)
+
+`server/` + `app/api/*` implement the auth/data contract in real mode (`NEXT_PUBLIC_API_MOCKING=disabled` + `DATABASE_URL` + `JWT_SECRET`; `NEXT_PUBLIC_API_URL` points at this app's own `/api`). Rules: routes stay thin (parse → guard → db → respond) and import via `@server/*`; the API is the security boundary — every authenticated route verifies the JWT signature (`server/auth/jwt.ts`), passwords are argon2id, tokens never ride response bodies, auth responses keep the `{data}`/`{error:{code,message}}` envelope and non-auth endpoints stay flat, mirroring `src/shared/api/mocks/handlers.ts` exactly (change them together). Schema edits go `server/db/schema.ts` → `pnpm db:generate` → `pnpm db:push`; `server/` sits outside FSD (no Steiger), but Biome/tsc/vitest cover it (`server/**` tests use `// @vitest-environment node` — t3-env blocks server vars under jsdom). See `docs/backend.md`.
+
 ## Conventions
 
 - FSD layers, import only downward: `app → pages → widgets → features → entities → shared`. Same-layer cross-slice imports are forbidden **except** entity `@x` (example: `src/entities/user/@x/session.ts`, consumed only by `entities/session`).

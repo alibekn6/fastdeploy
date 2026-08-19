@@ -22,7 +22,10 @@
     "build-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws NEXT_PUBLIC_POSTHOG_KEY=phc_storybook storybook build",
     "test-storybook": "NEXT_PUBLIC_API_URL=https://api.example.com NEXT_PUBLIC_WS_URL=wss://api.example.com/ws NEXT_PUBLIC_POSTHOG_KEY=phc_storybook vitest run --project=storybook",
     "cz": "cz",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "dotenv -e .env.local -e .env -- drizzle-kit push",
+    "db:seed": "dotenv -e .env.local -e .env -- tsx server/db/seed.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css}": [
@@ -36,10 +39,14 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@neondatabase/serverless": "^1.1.0",
+    "@node-rs/argon2": "^2.1.0",
     "@t3-oss/env-nextjs": "0.13.11",
     "@tanstack/react-query": "5.101.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.2",
+    "jose": "^6.2.9",
     "ky": "2.0.2",
     "lucide-react": "^1.21.0",
     "next": "16.2.9",
@@ -80,6 +87,8 @@
     "@vitest/coverage-v8": "4.1.9",
     "commitizen": "4.3.2",
     "cz-conventional-changelog": "3.3.0",
+    "dotenv-cli": "^11.0.0",
+    "drizzle-kit": "^0.31.10",
     "husky": "9.1.7",
     "jsdom": "29.1.1",
     "lint-staged": "17.0.8",
@@ -90,6 +99,7 @@
     "steiger": "0.5.13",
     "storybook": "^10.4.6",
     "tailwindcss": "^4.3.1",
+    "tsx": "^4.23.12",
     "typescript": "^6",
     "vitest": "4.1.9"
   },

@@ -30,9 +30,16 @@ export default defineConfig({
           // and the ky `beforeRequest` hook awaits `mockWorkerReady()` — which
           // never resolves in jsdom without a browser worker. Tests needing
           // mock mode opt in explicitly with `vi.stubEnv`.
-          env: { NEXT_PUBLIC_API_MOCKING: "disabled", NEXT_PUBLIC_WS_URL: WS_URL },
-          // `proxy.test.ts` sits at the root next to the middleware it tests.
-          include: ["src/**/*.{test,spec}.{ts,tsx}", "proxy.test.ts"],
+          env: {
+            NEXT_PUBLIC_API_MOCKING: "disabled",
+            NEXT_PUBLIC_WS_URL: WS_URL,
+            // Pinned test-only secret so `server/` auth units can run without
+            // a developer's real env (32+ chars, matches the env schema).
+            JWT_SECRET: "vitest-only-jwt-secret-0123456789abcdef",
+          },
+          // `proxy.test.ts` sits at the root next to the middleware it tests;
+          // `server/**` holds the real-backend (route-handler layer) units.
+          include: ["src/**/*.{test,spec}.{ts,tsx}", "server/**/*.{test,spec}.ts", "proxy.test.ts"],
           // next-intl's middleware imports extensionless `next/server`, which
           // Node ESM can't resolve — let Vite's resolver process the package.
           server: { deps: { inline: ["next-intl"] } },

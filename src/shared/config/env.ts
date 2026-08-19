@@ -58,7 +58,13 @@ export const secureWsUrl = z
 export const secureAnalyticsHost = secureApiUrl;
 
 export const env = createEnv({
-  server: { NODE_ENV: z.enum(["development", "production", "test"]).default("development") },
+  server: {
+    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    // Real-backend mode (both required together at runtime — asserted in
+    // server/config.ts, not here, so mock-mode builds need neither).
+    DATABASE_URL: z.string().url().optional(),
+    JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters").optional(),
+  },
   client: {
     NEXT_PUBLIC_API_URL: secureApiUrl,
     // Required, NOT defaulted: a deploy that forgets this must fail loudly rather
@@ -72,6 +78,8 @@ export const env = createEnv({
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
+    DATABASE_URL: process.env.DATABASE_URL,
+    JWT_SECRET: process.env.JWT_SECRET,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
     NEXT_PUBLIC_API_MOCKING: process.env.NEXT_PUBLIC_API_MOCKING,
