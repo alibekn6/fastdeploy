@@ -33,6 +33,9 @@ export default defineConfig({
           env: {
             NEXT_PUBLIC_API_MOCKING: "disabled",
             NEXT_PUBLIC_WS_URL: WS_URL,
+            // Pinned like WS_URL so tests don't inherit a developer's real-mode
+            // `.env` (which points at the app's own /api).
+            NEXT_PUBLIC_API_URL: "https://api.example.com",
             // Pinned test-only secret so `server/` auth units can run without
             // a developer's real env (32+ chars, matches the env schema).
             JWT_SECRET: "vitest-only-jwt-secret-0123456789abcdef",
@@ -56,7 +59,11 @@ export default defineConfig({
           // MSW explicitly via `setupServer`, so they never need app-level mock
           // mode — and the jsdom-docblocked files would otherwise hang on the
           // ky `mockWorkerReady()` gate waiting for a worker that never starts.
-          env: { NEXT_PUBLIC_API_MOCKING: "disabled", NEXT_PUBLIC_WS_URL: WS_URL },
+          env: {
+            NEXT_PUBLIC_API_MOCKING: "disabled",
+            NEXT_PUBLIC_WS_URL: WS_URL,
+            NEXT_PUBLIC_API_URL: "https://api.example.com",
+          },
           // `.tsx` so UI slices can be exercised at the MSW network boundary
           // (per-file `@vitest-environment jsdom` docblocks own the DOM).
           include: ["src/**/*.integration.{test,spec}.{ts,tsx}"],

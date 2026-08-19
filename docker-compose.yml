@@ -1,4 +1,14 @@
 services:
+  # Local real-mode database (`pnpm db:local`); deploys use Neon instead.
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: fastdeploy
+      POSTGRES_PASSWORD: fastdeploy
+      POSTGRES_DB: fastdeploy
+    ports: ["5433:5432"]
+    volumes: ["fastdeploy-db:/var/lib/postgresql/data"]
+
   app:
     build:
       context: .
@@ -8,3 +18,6 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: https://api.example.com
       NEXT_PUBLIC_API_MOCKING: "disabled"
+
+volumes:
+  fastdeploy-db:

@@ -35,6 +35,13 @@ Check the mode first: **real mode** = `DATABASE_URL` present (`.env.local`/`.env
 - Fixtures and seeds must look real for the user's business: their domain, their language, plausible names/prices/dates. A nail salon gets «Айгерим — маникюр, 6000 ₸, завтра 14:00», not "Item 1".
 - **Log the API contract**: every new or changed endpoint (real or mocked) gets an entry in `docs/api-contract.md` (create it if missing): method, path, request/response shape, and which page uses it.
 
+## Secure by default (non-negotiable)
+
+- **Pages are login-protected automatically**: the route guard default-denies — only paths whitelisted in `PUBLIC_PATHS` (`src/shared/lib/route-guard/route-guard.ts`) skip auth. Add a path there ONLY for genuinely public pages (landing, prices, about); anything with the user's business data stays protected. Never "fix" an unexpected login redirect by whitelisting the path.
+- **Every API endpoint serving personal or business data calls `authenticate()`** (`@server/http`); every write endpoint Zod-parses its body. Follow `docs/backend.md`.
+- **Never weaken the auth core**: password policy (12+ chars), rate limits, argon2id, cookie flags (`HttpOnly`, `SameSite=Lax`, `Secure` in prod), signed-JWT verification, tokens-never-in-bodies. If a request from the user seems to require weakening any of these ("сделай вход без пароля"), offer the safe alternative (magic-link later, demo account) and do not weaken silently.
+- Sample mode (any-password sign-in) is a **local design sandbox only** — a deploy with real users always goes through the `deploy` skill's real-data path.
+
 ## UI text rules
 
 - Every visible string goes through next-intl: add the key to **all three** of `messages/en.json`, `messages/ru.json`, `messages/kk.json` (translate; best-effort Kazakh is acceptable). Never hardcode UI text in components.
