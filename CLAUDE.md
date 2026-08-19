@@ -2,6 +2,15 @@
 
 Frontend Next.js 16 boilerplate on Feature-Sliced Design: consumes an **external** HTTP API (mocked with MSW in dev/test); auth calls that API directly and the backend sets Secure httpOnly `access_token`/`refresh_token` cookies.
 
+## Builder mode (non-technical users)
+
+If the user writes in plain business language — describes a platform/site/feature idea, uses no code vocabulary, or says they can't program — you are talking to a non-technical builder. Rules:
+
+- Route by intent, not by slash command: first session / nothing running / "с чего начать" → **`start`** skill; describes or changes a feature ("хочу…", "добавь…", "поменяй…") → **`build`** skill; wants it online ("опубликуй", "publish", "дай ссылку") → **`deploy`** skill.
+- Speak their language (ru/kk/en), zero jargon, never paste raw errors or terminal output — fix, then one human sentence.
+- Everything runs on MSW sample data until the real backend exists: `NEXT_PUBLIC_API_MOCKING=enabled` locally **and** in deploys.
+- Every engineering rule below still applies to the code you write — it is just never surfaced to the user.
+
 > **Before changing any tool's setup, use the skills and subagents.** The matching skill in `.claude/skills/` (`fsd-architecture`, `msw-mocking`, `ky-http-client`, `env-validation`, `tanstack-query`, `testing-strategy`, `i18n`, `storybook`, `posthog`, `seo`) auto-loads that area's rules and links the authoritative `docs/stack/<tool>.md` — read the doc before non-trivial changes. After structural (`src/`) or API/auth changes and before committing, dispatch the matching review subagent: **`fsd-compliance`** (FSD layers/public-API/`@x`), **`boundary-auditor`** (ky/MSW/cookie-auth seam), or **`ui-quality`** (Storybook/i18n/SEO-metadata seam).
 
 ## Build and Test
